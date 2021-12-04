@@ -1,8 +1,55 @@
+//
+//  Types.h
+//  test
+//
+//  Created by 最上川 on 2021/12/4.
+//
+
 #ifndef __TYPES__
 #define __TYPES__
+#include <tuple>
 
-typedef unsigned long long ThreadId;
-typedef void* thread_t;
+#if defined (__APPLE__) || defined (__linux__)
+typedef pthread_t thread_t;
+#elif defined (_WIN32)
+typedef unsigned int thread_t;
+#endif
+
+
+
+class ThreadId{
+public:
+    thread_t id_;
+    ThreadId() : id_(0) {}
+    ThreadId(thread_t id) : id_(id) {}
+    friend bool operator==(ThreadId x, ThreadId y)
+    {
+        return x.id_ == y.id_;
+    }
+    friend bool operator!=(ThreadId x, ThreadId y)
+    {
+        return x.id_ != y.id_;
+    }
+    friend bool operator<(ThreadId x, ThreadId y)
+    {
+        return x.id_ < y.id_;
+    }
+    friend bool operator<=(ThreadId x, ThreadId y)
+    {
+        return x.id_ <= y.id_;
+    }
+    friend bool operator>(ThreadId x, ThreadId y)
+    {
+        return x.id_ > y.id_;
+    }
+    friend bool operator>=(ThreadId x, ThreadId y)
+    {
+        return x.id_ >= y.id_;
+    }
+    
+    
+    friend class MThread;
+};
 
 #if __cplusplus < 201103L
 #define _LIBCPP_CXX03_LANG
@@ -31,12 +78,6 @@ using remove_cv_t = typename remove_cv<T>::type;
 
 template<typename T>
 using remove_reference_t = typename remove_reference<T>::type;
-#endif 
-
-// version < C++17
-#ifndef _LIBCPP_CXX03_LANG && _LIBCPP_CXX11_LANG && _LIBCPP_CXX14_LANG
-template<typename T>
-using tuple_size_v = typename tuple_size<T>::value;
 #endif
 
-#endif
+#endif /* Types_h */
