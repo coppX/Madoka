@@ -3,14 +3,10 @@
 
 #include <tuple>
 #include <memory>
+#include <functional>
 #include "Types.h"
 
-#if defined (__APPLE__) || defined (__linux__)
-#include <pthread.h>
-#elif defined (_WIN32)
-#include <process.h>
-#endif
-
+#ifndef _LIBCPP_CXX20_LANG
 template<typename T >
 struct remove_cvref {
     typedef std::remove_cv_t<std::remove_reference_t<T>> type;
@@ -18,6 +14,7 @@ struct remove_cvref {
 
 template<typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
+#endif
 
 template<size_t...> struct tuple_indices {};
 
@@ -42,6 +39,21 @@ struct make_tuple_indices {
     typedef typename make_indices_imp<Sp, tuple_indices<>, Ep>::type type;
 };
 
+template<typename Tuple>
+inline void* Invoke(void* rawVals)
+{
+    std::unique_ptr<Tuple> tp(static_cast<Tuple*>(rawVals));
+    typedef typename make_tuple_indices<std::tuple_size_v<Tuple>, 1>::type IndexType;
+    thread_execute(*tp, IndexType());
+    return nullptr;
+}
+
+template<typename Tuple, size_t... Indices>
+inline void thread_execute(Tuple& tp, tuple_indices<Indices...>)
+{
+    std::invoke(std::move(std::get<0>(tp)), std::move(std::get<Indices>(tp))...);
+}
+
 class MThread
 {
 public:
@@ -55,19 +67,18 @@ public:
 
     //constructor
     MThread();
-    //#ifndef _LIBCPP_CXX03_LANG
     template<typename F, typename... Args,
-                    std::enable_if_t<!std::is_same_v<remove_cvref_t<F>, MThread>>>
+                    typename = std::enable_if_t<!std::is_same_v<remove_cvref_t<F>, MThread>>>
     MThread(F&& f, Args&&... args)
     {
         typedef std::tuple<std::decay_t<F>, std::decay_t<Args>...> Tp;
-        std::unique_ptr<Tp> tp(std::forward<F>(f), std::forward<Args>(args)...);
+        std::unique_ptr<Tp> tp(new Tp(std::forward<F>(f), std::forward<Args>(args)...));
 
         int ec = -1;
         #if defined (__APPLE__) || defined (__linux__)
-            ec = pthread_create(&t_, &Invoke, tp.get());
+            ec = pthread_create(&t_, NULL, &Invoke<Tp>, tp.get());
         #elif defined (_WIN32)
-            ec = _beginthreadex(nullptr, 0, &Invoke, tp.get(), 0, &t_);
+            ec = _beginthreadex(NULL, 0, &Invoke<Tp>, tp.get(), 0, &t_);
         #endif
         if(ec == 0)
         {
@@ -79,11 +90,15 @@ public:
             std::abort();
         }
     }
-    //#endif
 
     ~MThread()
     {
         assert(!joinable());
+    }
+    MThread(MThread&& t)
+        : t_(t.t_)
+    {
+        t.t_ = 0;
     }
     
     void operator=(MThread&& t)
@@ -95,7 +110,7 @@ public:
     //observers
     bool joinable() const noexcept
     {
-        return 0 == t_;
+        return 0 != t_;
     }
     
     ThreadId get_id() const noexcept
@@ -146,22 +161,7 @@ public:
 
 private:
     ThreadId threadId_;
-    native_handle_type type_;
     thread_t t_;
-    template<typename Tuple>
-    inline int Invoke(void* rawVals) noexcept
-    {
-        std::unique_ptr<Tuple> tp(static_cast<Tuple>(rawVals));
-        typedef typename make_tuple_indices<std::tuple_size_v<Tuple>, 2>::type IndexType;
-        thread_execute(tp, IndexType());
-        return 0;
-    }
-
-    template<typename Tuple, size_t... Indices>
-    inline void thread_execute(Tuple tp, tuple_indices<Indices...>)
-    {
-        invoke(std::move(std::get<0>(tp)), std::move(std::get<Indices>(tp))...);
-    }
 };
 
 #endif /* MThread_h */
