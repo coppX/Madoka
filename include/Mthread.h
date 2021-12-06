@@ -44,9 +44,9 @@ struct make_tuple_indices {
 template<typename Tuple>
 inline
 #if defined (__APPLE__) || defined (__linux__)
-void* 
+void*
 #elif defined (_WIN32)
-unsigned int 
+unsigned int
 #endif
 Invoke(void* rawVals)
 {
@@ -140,7 +140,20 @@ public:
         return t_._Hnd;
     }
 
-    static unsigned int hardware_concurrency() noexcept;
+    static unsigned int hardware_concurrency() noexcept
+    {
+#if defined (__APPLE__) || defined (__linux__)
+        unsigned n;
+        int mib[2] = { CTL_HW, HW_NCPU };
+        std::size_t s = sizeof(n);
+        sysctl(mib, 2, &n, &s, 0, 0);
+        return n;
+#elif defined (_WIN32)
+        SYSTEM_INFO info;
+        GetSystemInfo(&info);
+        return info.dwNumberOfProcessors;
+#endif
+    }
 
     //operations
     void join()
