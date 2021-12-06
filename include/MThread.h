@@ -7,6 +7,7 @@
 #include <functional>
 #include "Types.h"
 
+// C++ version < C++20
 #ifndef _LIBCPP_CXX20_LANG
 // remove const volatile and reference attribute
 template<typename T >
@@ -18,6 +19,7 @@ template<typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 #endif
 
+// this struct defined is to dedution a indices
 template<size_t...> struct tuple_indices {};
 
 template<size_t Sp, typename IntTuple, size_t Ep> struct make_indices_imp;
@@ -25,10 +27,11 @@ template<size_t Sp, typename IntTuple, size_t Ep> struct make_indices_imp;
 template<size_t Sp, size_t... Indices, size_t Ep>
 struct make_indices_imp<Sp, tuple_indices<Indices...>, Ep>
 {
+    // every recursion, the Indices will be 1, 2, 3... + Sp, and Sp += 1
     typedef typename make_indices_imp<Sp + 1, tuple_indices<Indices..., Sp>, Ep>::type type;
 };
 
-//recursion end Sp=Ep
+// the recursion end, Sp=Ep
 template<size_t Ep, size_t... Indices>
 struct make_indices_imp<Ep, tuple_indices<Indices...>, Ep>
 {
@@ -38,6 +41,7 @@ struct make_indices_imp<Ep, tuple_indices<Indices...>, Ep>
 //indices
 template<size_t Ep, size_t Sp = 0>
 struct make_tuple_indices {
+    // the tuple_indices<> here is to store the sequence [1, tuple_size) when template dedutions
     typedef typename make_indices_imp<Sp, tuple_indices<>, Ep>::type type;
 };
 
@@ -52,6 +56,7 @@ Invoke(void* rawVals)
 {
     std::unique_ptr<Tuple> tp(static_cast<Tuple*>(rawVals));
     typedef typename make_tuple_indices<std::tuple_size_v<Tuple>, 1>::type IndexType;
+    // IndexType will be tuple_indices<1, 2, 3, 4 ... tuple_size_v<Tuple> - 1>
     thread_execute(*tp, IndexType());
 #if defined (__APPLE__) || defined (__linux__)
     return nullptr;
@@ -63,6 +68,7 @@ Invoke(void* rawVals)
 template<typename Tuple, size_t... Indices>
 inline void thread_execute(Tuple& tp, tuple_indices<Indices...>)
 {
+    // then dedution Indices will be 1, 2, 3 ... uple_size_v<Tuple> - 1
     std::invoke(std::move(std::get<0>(tp)), std::move(std::get<Indices>(tp))...);
 }
 
@@ -142,16 +148,19 @@ public:
 
     static unsigned int hardware_concurrency() noexcept
     {
+    // Mac
 #if defined (CTL_HW) && defined (HW_NCPU)
         unsigned n;
         int mib[2] = { CTL_HW, HW_NCPU };
         std::size_t s = sizeof(n);
         sysctl(mib, 2, &n, &s, 0, 0);
         return n;
+    // linux
 #elif defined (_SC_NPROCESSORS_ONLN)
         long result = sysconf(_SC_NPROCESSORS_ONLN);
         if (result < 0) return 0;
         return static_cast<unsigned>(result);
+    // windows
 #elif defined (_WIN32)
         SYSTEM_INFO info;
         GetSystemInfo(&info);

@@ -22,13 +22,19 @@ struct thread_t {
 typedef _Thrd_t thread_t;
 #endif
 
-#if __cplusplus < 201103L
+#if defined (__clang__) || defined (__GNUC__)
+#define CPP_STANDARD __cplusplus	
+#elif defined (_MSC_VER)
+#define CPP_STANDARD _MSVC_LANG
+#endif
+
+#if CPP_STANDARD < 201103L
 #define _LIBCPP_CXX03_LANG
-#elif __cplusplus < 201402L
+#elif CPP_STANDARD < 201402L
 #define _LIBCPP_CXX11_LANG
-#elif __cplusplus < 201703L
+#elif CPP_STANDARD < 201703L
 #define _LIBCPP_CXX14_LANG
-#elif __cplusplus == 201703L
+#elif CPP_STANDARD == 201703L
 #define _LIBCPP_CXX17_LANG
 #else
 #define _LIBCPP_CXX20_LANG
@@ -85,7 +91,7 @@ public:
     friend class MThread;
 };
 
-// version < C++14
+// C++ version < C++14
 #ifdef _LIBCPP_CXX11_LANG
 template<typename T>
 using decay_t = typename decay<T>::type;
