@@ -8,6 +8,7 @@
 #elif defined (_WIN32)
 #include <process.h>
 #include <xthreads.h>
+#include <windows.h>
 #endif
 
 
