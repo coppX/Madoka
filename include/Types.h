@@ -1,14 +1,23 @@
 #ifndef __TYPES__
 #define __TYPES__
-
-#include <compare>
+#include <ostream>
 
 #if defined (__APPLE__) || defined (__linux__)
 #include <pthread.h>
-typedef pthread_t thread_t;
 #elif defined (_WIN32)
 #include <process.h>
-typedef unsigned int thread_t;
+#include <xthreads.h>
+#endif
+
+
+#if defined (__APPLE__) || defined (__linux__)
+typedef pthread_t _Thrd_id_t;
+struct thread_t {
+    _Thrd_id_t _Id;
+    int _Hnd;
+};
+#elif defined (_WIN32)
+typedef _Thrd_t thread_t;
 #endif
 
 #if __cplusplus < 201103L
@@ -23,12 +32,16 @@ typedef unsigned int thread_t;
 #define _LIBCPP_CXX20_LANG
 #endif
 
-class ThreadId{
+#ifdef _LIBCPP_CXX20_LANG
+#include <compare>
+#endif
+
+class ThreadId {
 public:
-    thread_t id_;
+    _Thrd_id_t id_;
     ThreadId() : id_(0) {}
-    ThreadId(thread_t id) : id_(id) {}
-    
+    ThreadId(_Thrd_id_t id) : id_(id) {}
+
 #ifdef _LIBCPP_CXX20_LANG
     friend std::strong_ordering operator<=>(ThreadId& x, ThreadId& y)
     {
@@ -60,7 +73,13 @@ public:
         return x.id_ >= y.id_;
     }
 #endif
-    
+
+    template<typename Ch, typename Tr>
+    friend std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& os, ThreadId id)
+    {
+        return os << id.id_;
+    }
+
     friend class MThread;
 };
 

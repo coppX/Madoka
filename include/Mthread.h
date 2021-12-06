@@ -3,10 +3,12 @@
 
 #include <tuple>
 #include <memory>
+#include <cassert>
 #include <functional>
 #include "Types.h"
 
 #ifndef _LIBCPP_CXX20_LANG
+// remove const volatile and reference attribute
 template<typename T >
 struct remove_cvref {
     typedef std::remove_cv_t<std::remove_reference_t<T>> type;
@@ -40,12 +42,22 @@ struct make_tuple_indices {
 };
 
 template<typename Tuple>
-inline void* Invoke(void* rawVals)
+inline
+#if defined (__APPLE__) || defined (__linux__)
+void* 
+#elif defined (_WIN32)
+unsigned int 
+#endif
+Invoke(void* rawVals)
 {
     std::unique_ptr<Tuple> tp(static_cast<Tuple*>(rawVals));
     typedef typename make_tuple_indices<std::tuple_size_v<Tuple>, 1>::type IndexType;
     thread_execute(*tp, IndexType());
+#if defined (__APPLE__) || defined (__linux__)
     return nullptr;
+#elif defined (_WIN32)
+    return 0;
+#endif
 }
 
 template<typename Tuple, size_t... Indices>
@@ -60,32 +72,36 @@ public:
     //delete copy constructor/operator
     MThread(const MThread&) = delete;
     MThread& operator=(const MThread&) = delete;
-    
+
     //typedef
-  
-    typedef thread_t native_handle_type;
+#if defined (__APPLE__) || defined (__linux__)
+    typedef int native_handle_type;
+#elif defined (_WIN32)
+    typedef void* native_handle_type;
+#endif
 
     //constructor
-    MThread();
+    MThread() : t_{} {}
     template<typename F, typename... Args,
-                    typename = std::enable_if_t<!std::is_same_v<remove_cvref_t<F>, MThread>>>
-    MThread(F&& f, Args&&... args)
+        typename = std::enable_if_t<!std::is_same_v<remove_cvref_t<F>, MThread>>>
+        MThread(F&& f, Args&&... args)
     {
         typedef std::tuple<std::decay_t<F>, std::decay_t<Args>...> Tp;
         std::unique_ptr<Tp> tp(new Tp(std::forward<F>(f), std::forward<Args>(args)...));
 
         int ec = -1;
-        #if defined (__APPLE__) || defined (__linux__)
-            ec = pthread_create(&t_, NULL, &Invoke<Tp>, tp.get());
-        #elif defined (_WIN32)
-            ec = _beginthreadex(NULL, 0, &Invoke<Tp>, tp.get(), 0, &t_);
-        #endif
-        if(ec == 0)
+#if defined (__APPLE__) || defined (__linux__)
+        t_._Hnd = pthread_create(&t_._Id, nullptr, &Invoke<Tp>, tp.get());
+#elif defined (_WIN32)
+        t_._Hnd = reinterpret_cast<void*>(_beginthreadex(nullptr, 0, &Invoke<Tp>, tp.get(), 0, &t_._Id));
+#endif
+        if (t_._Id)
         {
             tp.release();
         }
         else
         {
+            t_._Id = 0;
             printf("thread constructor failed");
             std::abort();
         }
@@ -98,60 +114,69 @@ public:
     MThread(MThread&& t)
         : t_(t.t_)
     {
-        t.t_ = 0;
+        t.t_ = {};
     }
-    
-    void operator=(MThread&& t)
+
+    MThread& operator=(MThread&& t)
     {
         t_ = t.t_;
-        t.t_ = 0;
+        t.t_ = {};
+        return *this;
     }
 
     //observers
     bool joinable() const noexcept
     {
-        return 0 != t_;
+        return 0 != t_._Id;
     }
-    
+
     ThreadId get_id() const noexcept
     {
-        return t_;
+        return t_._Id;
     }
-    
+
     native_handle_type native_handle()
     {
-        return t_;
+        return t_._Hnd;
     }
-    
+
     static unsigned int hardware_concurrency() noexcept;
 
     //operations
     void join()
     {
-        int ec = -1;
-        if (0 != t_)
+        if (0 != t_._Id)
         {
-            #if defined (__APPLE__) || defined (__linux__)
-                ec = pthread_join(t_, 0);
-            #elif defined (_WIN32)
-                //ec = _beginthreadex(nullptr, 0, &Invoke, tp.get(), 0, &t_);
-            #endif
-            if (ec == 0)
-                t_ = 0;
+            int ec = -1;
+#if defined (__APPLE__) || defined (__linux__)
+            ec = pthread_join(t_._Id, 0);
+#elif defined (_WIN32)
+            ec = _Thrd_join(t_, nullptr);
+#endif
+            if (0 != ec)
+            {
+                printf("thread join failed");
+                std::abort();
+            }
+            t_ = {};
         }
     }
     void detach()
     {
-        int ec = -1;
-        if (0 != t_)
+        if (0 != t_._Id)
         {
-            #if defined (__APPLE__) || defined (__linux__)
-                ec = pthread_detach(t_);
-            #elif defined (_WIN32)
-                //ec = _beginthreadex(nullptr, 0, &Invoke, tp.get(), 0, &t_);
-            #endif
-            if (ec == 0)
-                t_ = 0;
+            int ec = -1;
+#if defined (__APPLE__) || defined (__linux__)
+            ec = pthread_detach(t_._Id);
+#elif defined (_WIN32)
+            ec = _Thrd_detach(t_);
+#endif
+            if (0 != ec)
+            {
+                printf("thread detach failed");
+                std::abort();
+            }
+            t_ = {};
         }
     }
     void swap(MThread& t) noexcept
