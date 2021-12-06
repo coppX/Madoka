@@ -142,12 +142,16 @@ public:
 
     static unsigned int hardware_concurrency() noexcept
     {
-#if defined (__APPLE__) || defined (__linux__)
+#if defined (CTL_HW) && defined (HW_NCPU)
         unsigned n;
         int mib[2] = { CTL_HW, HW_NCPU };
         std::size_t s = sizeof(n);
         sysctl(mib, 2, &n, &s, 0, 0);
         return n;
+#elif defined (_SC_NPROCESSORS_ONLN)
+	long result = sysconf(_SC_NPROCESSORS_ONLN);
+	if (result < 0) return 0;
+	return static_cast<unsigned>(result);
 #elif defined (_WIN32)
         SYSTEM_INFO info;
         GetSystemInfo(&info);

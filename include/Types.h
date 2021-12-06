@@ -4,6 +4,7 @@
 
 #if defined (__APPLE__) || defined (__linux__)
 #include <pthread.h>
+#include <sys/sysctl.h>
 #elif defined (_WIN32)
 #include <process.h>
 #include <xthreads.h>
