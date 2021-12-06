@@ -20,7 +20,7 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 
 template<size_t...> struct tuple_indices {};
 
-template<size_t Sp, class IntTuple, size_t Ep> struct make_indices_imp;
+template<size_t Sp, typename IntTuple, size_t Ep> struct make_indices_imp;
 
 template<size_t Sp, size_t... Indices, size_t Ep>
 struct make_indices_imp<Sp, tuple_indices<Indices...>, Ep>
@@ -202,7 +202,6 @@ public:
     }
 
 private:
-    ThreadId threadId_;
     thread_t t_;
 };
 
