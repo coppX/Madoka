@@ -89,7 +89,7 @@ public:
         typedef std::tuple<std::decay_t<F>, std::decay_t<Args>...> Tp;
         std::unique_ptr<Tp> tp(new Tp(std::forward<F>(f), std::forward<Args>(args)...));
 
-        int ec = -1;
+        t_ = {};
 #if defined (__APPLE__) || defined (__linux__)
         t_._Hnd = pthread_create(&t_._Id, nullptr, &Invoke<Tp>, tp.get());
 #elif defined (_WIN32)
@@ -149,9 +149,9 @@ public:
         sysctl(mib, 2, &n, &s, 0, 0);
         return n;
 #elif defined (_SC_NPROCESSORS_ONLN)
-	long result = sysconf(_SC_NPROCESSORS_ONLN);
-	if (result < 0) return 0;
-	return static_cast<unsigned>(result);
+        long result = sysconf(_SC_NPROCESSORS_ONLN);
+        if (result < 0) return 0;
+        return static_cast<unsigned>(result);
 #elif defined (_WIN32)
         SYSTEM_INFO info;
         GetSystemInfo(&info);
@@ -162,7 +162,7 @@ public:
     //operations
     void join()
     {
-        if (0 != t_._Id)
+        if (joinable())
         {
             int ec = -1;
 #if defined (__APPLE__) || defined (__linux__)
@@ -180,7 +180,7 @@ public:
     }
     void detach()
     {
-        if (0 != t_._Id)
+        if (joinable())
         {
             int ec = -1;
 #if defined (__APPLE__) || defined (__linux__)
