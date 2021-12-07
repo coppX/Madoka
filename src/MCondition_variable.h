@@ -43,4 +43,36 @@ public:
 #endif
     native_handle_type native_handle();
 };
+
+class MCondition_variable_any
+{
+public:
+    MCondition_variable_any();
+    ~MCondition_variable_any();
+
+    MCondition_variable_any(const MCondition_variable_any&) = delete;
+    MCondition_variable_any& operator=(const MCondition_variable_any&) = delete;
+
+    void notify_all() noexcept;
+    void notify_one() noexcept;
+
+    template<typename Lock>
+    void wait(Lock& lock);
+
+    template<typename Lock, typename Predicate>
+    void wait(Lock& lock, Predicate pred);
+
+    template<typename Lock, typename Clock, typename Duration>
+    cv_status wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& abs_time);
+
+    template<typename Lock, typename Clock, typename Duration, typename Predicate>
+    bool wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& abs_time, Predicate pred);
+
+    template<typename Lock, typename Rep, typename Period>
+    cv_status wait_for(Lock& lock, const std::chrono::duration<Rep, Period>& rel_time);
+
+    template<typename Lock, typename Rep, typename Period, typename Predicate>
+    bool wait_for(Lock& lock, const std::chrono::duration<Rep, Period>& rel_time, Predicate pred);
+};
+
 #endif //MTHREAD_MCONDITION_VARIABLE_H
