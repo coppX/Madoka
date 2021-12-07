@@ -1,4 +1,4 @@
-#include "MThread"
+#include "MThread.h"
 #include <iostream>
 
 int main()
