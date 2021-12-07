@@ -108,5 +108,35 @@ public:
 
     template<typename Clock, typename Duration>
     MUnique_lock(mutex_type& m, const std::chrono::time_point<Clock, Duration>& abs_time);
+
+    template<typename Rep, typename Period>
+    MUnique_lock(mutex_type& m, const std::chrono::duration<Rep, Period>& rel_time);
+
+    ~MUnique_lock();
+
+    MUnique_lock(MUnique_lock&) = delete;
+    MUnique_lock& operator=(MUnique_lock&) = delete;
+
+    MUnique_lock(MUnique_lock&&) noexcept;
+
+    MUnique_lock& operator=(MUnique_lock&&) noexcept;
+
+    void lock();
+    bool try_lock();
+
+    template<typename Rep, typename Period>
+    bool try_lock_for(const std::chrono::duration<Rep, Period>& rel_time);
+
+    template<typename Clock, typename Duration>
+    bool try_lock_until(const std::chrono::time_point<Clock, Duration>& abs_time);
+
+    void unlock();
+
+    void swap(MUnique_lock& u) noexcept;
+    mutex_type* release() noexcept;
+
+    bool owns_lock() const noexcept;
+    explicit  operator bool() const noexcept;
+    mutex_type* mutex() const noexcept;
 };
 #endif //MTHREAD_MUTEX_H

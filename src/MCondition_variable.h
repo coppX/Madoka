@@ -6,7 +6,7 @@
 #define MTHREAD_MCONDITION_VARIABLE_H
 #include "Types.h"
 #include "Mutex.h"
-
+enum class cv_status {no_timeout, timeout};
 class MCondition_variable
 {
 public:
@@ -19,6 +19,28 @@ public:
     void notify_all() noexcept;
     void notify_one() noexcept;
 
-    void wait()
+    void wait(MUnique_lock<Mutex>& lock);
+
+    template<typename Predicate>
+    void wait(MUnique_lock<Mutex>& lock, Predicate pred);
+
+    template<typename Clock, typename Duration>
+    cv_status wait_until(MUnique_lock<Mutex>& lock, const std::chrono::time_point<Clock, Duration>& abs_time);
+
+    template<typename Clock, typename Duration, typename Predicate>
+    bool wait_util(MUnique_lock<Mutex>& lock, const std::chrono::time_point<Clock, Duration>& abs_time, Predicate pred);
+
+    template<typename Rep, typename Period>
+    cv_status wait_for(MUnique_lock<Mutex>& lock, const std::chrono::duration<Rep, Period>& rel_time);
+
+    template<typename Rep, typename Period, typename Predicate>
+    bool wait_for(MUnique_lock<Mutex>& lock, const std::chrono::duration<Rep, Period>& rel_time, Predicate pred);
+
+#if defined (__APPLE__) || defined (__linux__)
+    typedef pthread_cond_t* native_handle_type;
+#elif defined (_WIN32)
+    typedef void* native_handle_type;
+#endif
+    native_handle_type native_handle();
 };
 #endif //MTHREAD_MCONDITION_VARIABLE_H
