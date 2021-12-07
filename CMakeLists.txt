@@ -18,7 +18,8 @@ set(CHAPTERS
 )
 
 set(test
-    test_thread
+   test_thread
+   test_mutex
 )
 
 foreach(CHAPTER ${CHAPTERS})
@@ -26,8 +27,6 @@ foreach(CHAPTER ${CHAPTERS})
         file(GLOB SOURCE
                 "${CHAPTER}/${DEMO}.h"
                 "${CHAPTER}/${DEMO}.cpp")
-        MESSAGE(SOURCE)
-#        set(NAME "${CHAPTER}__${DEMO}")
         add_executable(${DEMO} ${SOURCE})
     endforeach(DEMO)
 endforeach(CHAPTER)

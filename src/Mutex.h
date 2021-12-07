@@ -10,21 +10,65 @@
 class Mutex
 {
 public:
-    constexpr Mutex() noexcept;
-    ~Mutex();
+    constexpr Mutex() noexcept
+    {
+
+    }
+    ~Mutex()
+    {
+#if defined(__APPLE__) || (__linux)
+        pthread_mutex_destroy(&_m);
+#elif defined(_WIN32)
+
+#endif
+    }
     Mutex(const Mutex&) = delete;
     Mutex& operator=(const Mutex&) = delete;
 
-    void lock();
-    bool try_lock();
-    void unlock();
+    void lock()
+    {
+        int ec = -1;
+#if defined (__APPLE__) || defined (__linux__)
+        ec = pthread_mutex_lock(&_m);
+#elif defined (_WIN32)
+#endif
+        if (0 != ec)
+        {
+            printf("mutex lock failed");
+            std::abort();
+        }
+    }
+    bool try_lock()
+    {
+        int ec = -1;
+#if defined(__APPLE__) || defined(__linux__)
+        ec = pthread_mutex_trylock(&_m);
+#elif defined(_WIN32)
+#endif
+        return 0 == ec;
+    }
+    void unlock()
+    {
+        int ec = -1;
+#if defined(__APPLE__) || defined (__linux__)
+        ec = pthread_mutex_unlock(&_m);
+#elif defined(_WIN32)
+#endif
+        if(0 != ec)
+        {
+            printf("mutex unlock failed");
+        }
+    }
 
 #if defined (__APPLE__) || defined (__linux__)
-    typedef pthread_mutex_t* native_handle_type;
+    typedef pthread_mutex_t mutex_t;
 #elif defined (_WIN32)
-    typedef void* native_handle_type;
+    typedef void* mutex_t;
 #endif
+    typedef mutex_t native_handle_type;
     native_handle_type native_handle();
+private:
+    mutex_t _m = MUTEXT_INITIALIZER;
 };
 
 class Recursive_mutex

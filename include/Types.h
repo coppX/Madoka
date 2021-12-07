@@ -112,4 +112,10 @@ template<typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 #endif
 
+#if defined (__APPLE__) || defined (__linux__)
+#define MUTEXT_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#elif defined (_WIN32)
+#define MUTEXT_INITIALIZER 0
+#endif
+
 #endif /* Types_h */
