@@ -90,4 +90,23 @@ public:
     void unlock();
 };
 
+struct defer_lock_t { explicit defer_lock_t() = default; };
+struct try_to_lock_t { explicit try_to_lock_t() = default; };
+struct adopt_lock_t { explicit adopt_lock_t() = default; };
+
+template<typename Mutex>
+class MUnique_lock
+{
+public:
+    typedef Mutex mutex_type;
+    MUnique_lock() noexcept;
+    explicit MUnique_lock(mutex_type& m);
+
+    MUnique_lock(mutex_type& m, defer_lock_t) noexcept;
+    MUnique_lock(mutex_type& m, try_to_lock_t);
+    MUnique_lock(mutex_type& m, adopt_lock_t);
+
+    template<typename Clock, typename Duration>
+    MUnique_lock(mutex_type& m, const std::chrono::time_point<Clock, Duration>& abs_time);
+};
 #endif //MTHREAD_MUTEX_H
