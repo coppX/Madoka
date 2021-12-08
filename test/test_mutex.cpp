@@ -10,7 +10,7 @@ int main()
     M::mutex m;
     m.lock();
     printf("m.try_lock() = %d\n", m.try_lock());
+    m.lock();
     m.unlock();
-
     return 0;
 }

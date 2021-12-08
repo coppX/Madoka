@@ -20,6 +20,7 @@ set(CHAPTERS
 set(test
    test_thread
    test_mutex
+   test_recursive_mutex
 )
 
 foreach(CHAPTER ${CHAPTERS})

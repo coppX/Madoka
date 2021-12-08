@@ -57,27 +57,51 @@ namespace M {
 
     class recursive_mutex {
     public:
-        recursive_mutex();
+        recursive_mutex()
+        {
+            if (0 != recursive_mutex_init(&m_))
+            {
+                printf("recursive_mutex constructor failed");
+            }
+        }
 
-        ~recursive_mutex();
+        ~recursive_mutex()
+        {
+            if (0 != recursive_mutex_destroy(&m_))
+            {
+                printf("recursive_mutex destructor failed");
+            }
+        }
 
         recursive_mutex(const recursive_mutex &) = delete;
 
         recursive_mutex &operator=(const recursive_mutex &) = delete;
 
-        void lock();
+        void lock()
+        {
+            if (0 != recursive_mutex_lock(&m_))
+            {
+                printf("recursive_mutex_lock failed");
+            }
+        }
 
-        bool try_lock();
+        bool try_lock()
+        {
+            return recursive_mutex_trylock(&m_);
+        }
 
-        void unlock();
+        void unlock()
+        {
+            if (0 != recursive_mutex_unlock(&m_))
+            {
+                printf("recursive_mutex_unlock failed");
+            }
+        }
 
-#if defined(__APPLE__) || defined(__linux__)
-        typedef pthread_mutex_t native_handle_type;
-#elif defined(_WIN32)
-        typedef void *native_handle_type;
-#endif
-
+        typedef recursive_mutex_t native_handle_type;
         native_handle_type native_handle();
+    private:
+        recursive_mutex_t m_ = MUTEXT_INITIALIZER;
     };
 
     class timed_mutex {
