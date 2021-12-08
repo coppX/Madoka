@@ -11,6 +11,48 @@
 
 namespace M {
 
+    struct defer_lock_t {
+        explicit defer_lock_t() = default;
+    };
+
+    struct try_to_lock_t {
+        explicit try_to_lock_t() = default;
+    };
+
+    struct adopt_lock_t {
+        explicit adopt_lock_t() = default;
+    };
+
+
+    template<typename Mutex>
+    class lock_guard
+    {
+    public:
+        typedef Mutex mutex_type;
+        explicit lock_guard(mutex_type &m)
+            : m_(m)
+        {
+            m_.lock();
+        }
+
+        lock_guard(mutex_type& m, adopt_lock_t)
+            : m_(m)
+        {
+
+        }
+
+        ~lock_guard()
+        {
+            m_.unlock();
+        }
+
+        lock_guard(const lock_guard&) = delete;
+        lock_guard& operator=(const lock_guard&) = delete;
+
+    private:
+        mutex_type& m_;
+    };
+
     class mutex {
     public:
         constexpr mutex() = default;
@@ -151,18 +193,6 @@ namespace M {
         bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
 
         void unlock();
-    };
-
-    struct defer_lock_t {
-        explicit defer_lock_t() = default;
-    };
-
-    struct try_to_lock_t {
-        explicit try_to_lock_t() = default;
-    };
-
-    struct adopt_lock_t {
-        explicit adopt_lock_t() = default;
     };
 
     template<typename Mutex>
