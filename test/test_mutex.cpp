@@ -7,7 +7,7 @@
 
 int main()
 {
-    Mutex m;
+    M::mutex m;
     m.lock();
     printf("m.try_lock() = %d", m.try_lock());
     return 0;

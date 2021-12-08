@@ -9,6 +9,7 @@
 #include <process.h>
 #include <xthreads.h>
 #include <windows.h>
+#include <synchapi.h>
 #endif
 
 

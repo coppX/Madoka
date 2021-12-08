@@ -26,23 +26,23 @@ namespace M {
 
         void notify_one() noexcept;
 
-        void wait(MUnique_lock<Mutex> &lock);
+        void wait(unique_lock<mutex> &lock);
 
         template<typename Predicate>
-        void wait(MUnique_lock<Mutex> &lock, Predicate pred);
+        void wait(unique_lock<mutex> &lock, Predicate pred);
 
         template<typename Clock, typename Duration>
-        cv_status wait_until(MUnique_lock<Mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time);
+        cv_status wait_until(unique_lock<mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time);
 
         template<typename Clock, typename Duration, typename Predicate>
         bool
-        wait_util(MUnique_lock<Mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time, Predicate pred);
+        wait_util(unique_lock<mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time, Predicate pred);
 
         template<typename Rep, typename Period>
-        cv_status wait_for(MUnique_lock<Mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time);
+        cv_status wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time);
 
         template<typename Rep, typename Period, typename Predicate>
-        bool wait_for(MUnique_lock<Mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
+        bool wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
 
 #if defined (__APPLE__) || defined (__linux__)
         typedef pthread_cond_t* native_handle_type;
