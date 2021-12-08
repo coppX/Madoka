@@ -52,7 +52,7 @@ namespace M {
         }
 
     private:
-        mutex_t m_ = MUTEXT_INITIALIZER;
+        mutex_t m_ = MUTEX_INITIALIZER;
     };
 
     class recursive_mutex {

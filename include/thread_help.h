@@ -94,9 +94,11 @@ using remove_reference_t = typename remove_reference<T>::type;
 //********************MUTEX*************************
 
 #if defined (POSIX)
-#define MUTEXT_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#define MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#define COND_INITIALIZER PTHREAD_COND_INITIALIZER
 #elif defined (WINDOWS)
-#define MUTEXT_INITIALIZER nullptr
+#define MUTEX_INITIALIZER nullptr
+#define COND_INITIALIZER nullptr
 #endif
 
 #if defined (POSIX)
@@ -201,6 +203,15 @@ int recursive_mutex_destroy(recursive_mutex_t* m)
     return 0;
 #endif
 }
+
+//***************************************************
+
+//****************condition_variable*****************
+#if defined (POSIX)
+typedef pthread_cond_t cond_t;
+#elif defined (WINDOWS)
+typedef void* cond_t;
+#endif
 
 //***************************************************
 #endif //MTHREAD_THREAD_IMPL_H

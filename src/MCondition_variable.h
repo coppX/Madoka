@@ -14,7 +14,7 @@ namespace M {
 
     class condition_variable {
     public:
-        condition_variable();
+        condition_variable() = default;
 
         ~condition_variable();
 
@@ -51,6 +51,8 @@ namespace M {
 #endif
 
         native_handle_type native_handle();
+    private:
+        cond_t cv_ = COND_INITIALIZER;
     };
 
     class condition_variable_any {
