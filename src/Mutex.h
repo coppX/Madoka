@@ -7,180 +7,207 @@
 #include "Types.h"
 #include <chrono>
 
-class Mutex
-{
-public:
-    constexpr Mutex() noexcept
-    {
+namespace M {
 
-    }
-    ~Mutex()
-    {
+    class mutex {
+    public:
+        constexpr mutex() noexcept {
+
+        }
+
+        ~mutex() {
 #if defined(__APPLE__) || (__linux)
-        pthread_mutex_destroy(&_m);
+            pthread_mutex_destroy(&_m);
 #elif defined(_WIN32)
 
 #endif
-    }
-    Mutex(const Mutex&) = delete;
-    Mutex& operator=(const Mutex&) = delete;
+        }
 
-    void lock()
-    {
-        int ec = -1;
+        mutex(const mutex &) = delete;
+
+        mutex &operator=(const mutex &) = delete;
+
+        void lock() {
+            int ec = -1;
 #if defined (__APPLE__) || defined (__linux__)
-        ec = pthread_mutex_lock(&_m);
+            ec = pthread_mutex_lock(&_m);
 #elif defined (_WIN32)
 #endif
-        if (0 != ec)
-        {
-            printf("mutex lock failed");
-            std::abort();
+            if (0 != ec) {
+                printf("mutex lock failed");
+                std::abort();
+            }
         }
-    }
-    bool try_lock()
-    {
-        int ec = -1;
+
+        bool try_lock() {
+            int ec = -1;
 #if defined(__APPLE__) || defined(__linux__)
-        ec = pthread_mutex_trylock(&_m);
+            ec = pthread_mutex_trylock(&_m);
 #elif defined(_WIN32)
 #endif
-        return 0 == ec;
-    }
-    void unlock()
-    {
-        int ec = -1;
+            return 0 == ec;
+        }
+
+        void unlock() {
+            int ec = -1;
 #if defined(__APPLE__) || defined (__linux__)
-        ec = pthread_mutex_unlock(&_m);
+            ec = pthread_mutex_unlock(&_m);
 #elif defined(_WIN32)
 #endif
-        if(0 != ec)
-        {
-            printf("mutex unlock failed");
+            if (0 != ec) {
+                printf("mutex unlock failed");
+            }
         }
-    }
 
 #if defined (__APPLE__) || defined (__linux__)
-    typedef pthread_mutex_t mutex_t;
+        typedef pthread_mutex_t mutex_t;
 #elif defined (_WIN32)
-    typedef void* mutex_t;
+        typedef void *mutex_t;
 #endif
-    typedef mutex_t native_handle_type;
-    native_handle_type native_handle();
-private:
-    mutex_t _m = MUTEXT_INITIALIZER;
-};
+        typedef mutex_t native_handle_type;
 
-class Recursive_mutex
-{
-public:
-    Recursive_mutex();
-    ~Recursive_mutex();
+        native_handle_type native_handle();
 
-    Recursive_mutex(const Recursive_mutex&) = delete;
-    Recursive_mutex& operator=(const Recursive_mutex&) = delete;
+    private:
+        mutex_t _m = MUTEXT_INITIALIZER;
+    };
 
-    void lock();
-    bool try_lock();
-    void unlock();
+    class recursive_mutex {
+    public:
+        recursive_mutex();
+
+        ~recursive_mutex();
+
+        recursive_mutex(const recursive_mutex &) = delete;
+
+        recursive_mutex &operator=(const recursive_mutex &) = delete;
+
+        void lock();
+
+        bool try_lock();
+
+        void unlock();
 
 #if defined(__APPLE__) || defined(__linux__)
-    typedef pthread_mutex_t native_handle_type;
+        typedef pthread_mutex_t native_handle_type;
 #elif defined(_WIN32)
-    typedef void* native_handle_type;
+        typedef void *native_handle_type;
 #endif
-    native_handle_type native_handle();
-};
 
-class Timed_mutex
-{
-public:
-    Timed_mutex();
-    ~Timed_mutex();
+        native_handle_type native_handle();
+    };
 
-    Timed_mutex(const Timed_mutex&) = delete;
-    Timed_mutex& operator=(const Timed_mutex&) = delete;
+    class timed_mutex {
+    public:
+        timed_mutex();
 
-    void lock();
-    bool try_lock();
+        ~timed_mutex();
 
-    template<typename Rep, typename Period>
-    bool try_lock_for(const std::chrono::duration<Rep, Period>& rel_time);
+        timed_mutex(const timed_mutex &) = delete;
 
-    template<typename Clock, typename Duration>
-    bool try_lock_until(const std::chrono::time_point<Clock, Duration>& abs_time);
+        timed_mutex &operator=(const timed_mutex &) = delete;
 
-    void unlock();
-};
+        void lock();
 
-class Recursive_timed_mutex
-{
-public:
-    Recursive_timed_mutex();
-    ~Recursive_timed_mutex();
+        bool try_lock();
 
-    Recursive_timed_mutex(const Recursive_timed_mutex&) = delete;
-    Recursive_timed_mutex& operator=(const Recursive_timed_mutex&) = delete;
+        template<typename Rep, typename Period>
+        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time);
 
-    void lock();
-    bool try_lock();
+        template<typename Clock, typename Duration>
+        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
 
-    template<typename Rep, typename Period>
-    bool try_lock_for(const std::chrono::duration<Rep, Period>& rel_time);
+        void unlock();
+    };
 
-    template<typename Clock, typename Duration>
-    bool try_lock_until(const std::chrono::time_point<Clock, Duration>& abs_time);
+    class recursive_timed_mutex {
+    public:
+        recursive_timed_mutex();
 
-    void unlock();
-};
+        ~recursive_timed_mutex();
 
-struct defer_lock_t { explicit defer_lock_t() = default; };
-struct try_to_lock_t { explicit try_to_lock_t() = default; };
-struct adopt_lock_t { explicit adopt_lock_t() = default; };
+        recursive_timed_mutex(const recursive_timed_mutex &) = delete;
 
-template<typename Mutex>
-class MUnique_lock
-{
-public:
-    typedef Mutex mutex_type;
-    MUnique_lock() noexcept;
-    explicit MUnique_lock(mutex_type& m);
+        recursive_timed_mutex &operator=(const recursive_timed_mutex &) = delete;
 
-    MUnique_lock(mutex_type& m, defer_lock_t) noexcept;
-    MUnique_lock(mutex_type& m, try_to_lock_t);
-    MUnique_lock(mutex_type& m, adopt_lock_t);
+        void lock();
 
-    template<typename Clock, typename Duration>
-    MUnique_lock(mutex_type& m, const std::chrono::time_point<Clock, Duration>& abs_time);
+        bool try_lock();
 
-    template<typename Rep, typename Period>
-    MUnique_lock(mutex_type& m, const std::chrono::duration<Rep, Period>& rel_time);
+        template<typename Rep, typename Period>
+        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time);
 
-    ~MUnique_lock();
+        template<typename Clock, typename Duration>
+        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
 
-    MUnique_lock(MUnique_lock&) = delete;
-    MUnique_lock& operator=(MUnique_lock&) = delete;
+        void unlock();
+    };
 
-    MUnique_lock(MUnique_lock&&) noexcept;
+    struct defer_lock_t {
+        explicit defer_lock_t() = default;
+    };
 
-    MUnique_lock& operator=(MUnique_lock&&) noexcept;
+    struct try_to_lock_t {
+        explicit try_to_lock_t() = default;
+    };
 
-    void lock();
-    bool try_lock();
+    struct adopt_lock_t {
+        explicit adopt_lock_t() = default;
+    };
 
-    template<typename Rep, typename Period>
-    bool try_lock_for(const std::chrono::duration<Rep, Period>& rel_time);
+    template<typename Mutex>
+    class unique_lock {
+    public:
+        typedef Mutex mutex_type;
 
-    template<typename Clock, typename Duration>
-    bool try_lock_until(const std::chrono::time_point<Clock, Duration>& abs_time);
+        unique_lock() noexcept;
 
-    void unlock();
+        explicit unique_lock(mutex_type &m);
 
-    void swap(MUnique_lock& u) noexcept;
-    mutex_type* release() noexcept;
+        unique_lock(mutex_type &m, defer_lock_t) noexcept;
 
-    bool owns_lock() const noexcept;
-    explicit  operator bool() const noexcept;
-    mutex_type* mutex() const noexcept;
+        unique_lock(mutex_type &m, try_to_lock_t);
+
+        unique_lock(mutex_type &m, adopt_lock_t);
+
+        template<typename Clock, typename Duration>
+        unique_lock(mutex_type &m, const std::chrono::time_point<Clock, Duration> &abs_time);
+
+        template<typename Rep, typename Period>
+        unique_lock(mutex_type &m, const std::chrono::duration<Rep, Period> &rel_time);
+
+        ~unique_lock();
+
+        unique_lock(unique_lock &) = delete;
+
+        unique_lock &operator=(unique_lock &) = delete;
+
+        unique_lock(unique_lock &&) noexcept;
+
+        unique_lock &operator=(unique_lock &&) noexcept;
+
+        void lock();
+
+        bool try_lock();
+
+        template<typename Rep, typename Period>
+        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time);
+
+        template<typename Clock, typename Duration>
+        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
+
+        void unlock();
+
+        void swap(unique_lock &u) noexcept;
+
+        mutex_type *release() noexcept;
+
+        bool owns_lock() const noexcept;
+
+        explicit  operator bool() const noexcept;
+
+        mutex_type *mutex() const noexcept;
+    };
+
 };
 #endif //MTHREAD_MUTEX_H
