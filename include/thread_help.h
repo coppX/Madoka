@@ -153,6 +153,10 @@ typedef void* recursive_mutex_t;
 int recursive_mutex_init(recursive_mutex_t* m)
 {
 #if defined (POSIX)
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    return pthread_init(m, &attr);
 #elif defined (WINDOWS)
     InitializeCriticalSection((LPCRITICAL_SECTION)m);
     return 0;
@@ -162,6 +166,7 @@ int recursive_mutex_init(recursive_mutex_t* m)
 int recursive_mutex_lock(recursive_mutex_t* m)
 {
 #if defined (POSIX)
+    return pthread_mutex_lock(m);
 #elif defined (WINDOWS)
     EnterCriticalSection((LPCRITICAL_SECTION)m);
     return 0;
@@ -171,6 +176,7 @@ int recursive_mutex_lock(recursive_mutex_t* m)
 bool recursive_mutex_trylock(recursive_mutex_t* m)
 {
 #if defined (POSIX)
+    return pthread_mutex_trylock(m);
 #elif defined (WINDOWS)
     return TryEnterCriticalSection((LPCRITICAL_SECTION)m);
 #endif
@@ -179,6 +185,7 @@ bool recursive_mutex_trylock(recursive_mutex_t* m)
 int recursive_mutex_unlock(recursive_mutex_t* m)
 {
 #if defined (POSIX)
+    return pthread_mutex_unlock(m);
 #elif defined (WINDOWS)
     LeaveCriticalSection((LPCRITICAL_SECTION)m);
     return 0;
@@ -188,6 +195,7 @@ int recursive_mutex_unlock(recursive_mutex_t* m)
 int recursive_mutex_destroy(recursive_mutex_t* m)
 {
 #if defined (POSIX)
+    return pthread_mutex_destroy(m);
 #elif defined (WINDOWS)
     DeleteCriticalSection((LPCRITICAL_SECTION)m);
     return 0;

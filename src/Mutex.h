@@ -101,7 +101,7 @@ namespace M {
         typedef recursive_mutex_t native_handle_type;
         native_handle_type native_handle();
     private:
-        recursive_mutex_t m_ = MUTEXT_INITIALIZER;
+        recursive_mutex_t m_;
     };
 
     class timed_mutex {
