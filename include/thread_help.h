@@ -119,7 +119,7 @@ int mutex_lock(mutex_t* m)
 bool mutex_trylock(mutex_t* m)
 {
 #if defined (POSIX)
-    return pthread_mutex_trylock(m);
+    return 0 == pthread_mutex_trylock(m);
 #elif defined (WINDOWS)
     return TryAcquireSRWLockExclusive((PSRWLOCK)m);
 #endif
