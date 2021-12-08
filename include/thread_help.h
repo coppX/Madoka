@@ -148,7 +148,7 @@ int mutex_destroy(mutex_t* m)
 #if defined (POSIX)
 typedef pthread_mutex_t recursive_mutex_t;
 #elif defined (WINDOWS)
-typedef void* recursive_mutex_t;
+typedef void* recursive_mutex_t[6];
 #endif
 int recursive_mutex_init(recursive_mutex_t* m)
 {

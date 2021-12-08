@@ -98,8 +98,11 @@ namespace M {
             }
         }
 
-        typedef recursive_mutex_t native_handle_type;
-        native_handle_type native_handle();
+        typedef recursive_mutex_t* native_handle_type;
+        native_handle_type native_handle()
+        {
+            return &m_;
+        }
     private:
         recursive_mutex_t m_;
     };
