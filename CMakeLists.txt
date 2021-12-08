@@ -22,6 +22,7 @@ set(test
    test_mutex
    test_recursive_mutex
    test_lock_guard
+   test_unique_lock
 )
 
 foreach(CHAPTER ${CHAPTERS})

@@ -24,6 +24,9 @@ namespace M {
         explicit adopt_lock_t() = default;
     };
 
+    constexpr defer_lock_t defer_lock {};
+    constexpr try_to_lock_t try_to_lock {};
+    constexpr adopt_lock_t adopt_lock {};
 
     template<typename Mutex>
     class lock_guard
@@ -256,16 +259,32 @@ namespace M {
 
         void lock()
         {
-            static_assert(m_, "unique_lock::try_lock: reference null mutex");
-            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            if(!m_)
+            {
+                printf("unique_lock::lock: reference null mutex");
+                return;
+            }
+            if(owns_)
+            {
+                printf("unique_lock::lock: already locked");
+                return;
+            }
             m_->lock();
             owns_ = true;
         }
 
         bool try_lock()
         {
-            static_assert(m_, "unique_lock::try_lock: reference null mutex");
-            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            if(!m_)
+            {
+                printf("unique_lock::try_lock: reference null mutex");
+                return false;
+            }
+            if(owns_)
+            {
+                printf("unique_lock::try_lock: already locked");
+                return false;
+            }
             owns_ = m_->try_lock();
             return owns_;
         }
@@ -273,8 +292,16 @@ namespace M {
         template<typename Rep, typename Period>
         bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time)
         {
-            static_assert(m_, "unique_lock::try_lock: reference null mutex");
-            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            if(!m_)
+            {
+                printf("unique_lock::try_lock_for: reference null mutex");
+                return false;
+            }
+            if(owns_)
+            {
+                printf("unique_lock::try_lock_for: already locked");
+                return false;
+            }
             owns_ = m_->try_lock_for(rel_time);
             return owns_;
         }
@@ -282,8 +309,16 @@ namespace M {
         template<typename Clock, typename Duration>
         bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time)
         {
-            static_assert(m_, "unique_lock::try_lock: reference null mutex");
-            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            if(!m_)
+            {
+                printf("unique_lock::try_lock_until: reference null mutex");
+                return false;
+            }
+            if(owns_)
+            {
+                printf("unique_lock::try_lock_until: already locked");
+                return false;
+            }
             owns_ = m_->try_lock_until(abs_time);
             return owns_;
         }

@@ -3,5 +3,6 @@
 目前已支持特性列表:
 thread
 lock_guard
+unique_lock
 mutex
 recursive_mutex
