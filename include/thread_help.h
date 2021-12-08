@@ -158,7 +158,7 @@ int recursive_mutex_init(recursive_mutex_t* m)
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    return pthread_init(m, &attr);
+    return pthread_mutex_init(m, &attr);
 #elif defined (WINDOWS)
     InitializeCriticalSection((LPCRITICAL_SECTION)m);
     return 0;
