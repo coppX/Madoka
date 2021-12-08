@@ -5,71 +5,54 @@
 #ifndef MTHREAD_MUTEX_H
 #define MTHREAD_MUTEX_H
 #include "Types.h"
+#include "thread_help.h"
 #include <chrono>
+#include <cassert>
 
 namespace M {
 
     class mutex {
     public:
-        constexpr mutex() noexcept {
+        constexpr mutex() = default;
 
-        }
-
-        ~mutex() {
-#if defined(__APPLE__) || (__linux)
-            pthread_mutex_destroy(&_m);
-#elif defined(_WIN32)
-
-#endif
+        ~mutex()
+        {
+            assert(0 == mutex_destroy(&m_));
         }
 
         mutex(const mutex &) = delete;
 
         mutex &operator=(const mutex &) = delete;
 
-        void lock() {
-            int ec = -1;
-#if defined (__APPLE__) || defined (__linux__)
-            ec = pthread_mutex_lock(&_m);
-#elif defined (_WIN32)
-#endif
-            if (0 != ec) {
+        void lock()
+        {
+            if (0 != mutex_lock(&m_)) {
                 printf("mutex lock failed");
                 std::abort();
             }
         }
 
-        bool try_lock() {
-            int ec = -1;
-#if defined(__APPLE__) || defined(__linux__)
-            ec = pthread_mutex_trylock(&_m);
-#elif defined(_WIN32)
-#endif
-            return 0 == ec;
+        bool try_lock()
+        {
+           return mutex_trylock(&m_);
         }
 
-        void unlock() {
-            int ec = -1;
-#if defined(__APPLE__) || defined (__linux__)
-            ec = pthread_mutex_unlock(&_m);
-#elif defined(_WIN32)
-#endif
-            if (0 != ec) {
+        void unlock()
+        {
+            if (0 != mutex_unlock(&m_)) {
                 printf("mutex unlock failed");
             }
         }
 
-#if defined (__APPLE__) || defined (__linux__)
-        typedef pthread_mutex_t mutex_t;
-#elif defined (_WIN32)
-        typedef void *mutex_t;
-#endif
-        typedef mutex_t native_handle_type;
 
-        native_handle_type native_handle();
+        typedef mutex_t native_handle_type;
+        native_handle_type native_handle()
+        {
+            return m_;
+        }
 
     private:
-        mutex_t _m = MUTEXT_INITIALIZER;
+        mutex_t m_ = MUTEXT_INITIALIZER;
     };
 
     class recursive_mutex {

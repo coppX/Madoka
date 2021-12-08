@@ -6,6 +6,7 @@
 #include <cassert>
 #include <functional>
 #include "../include/Types.h"
+#include "../include/thread_help.h"
 
 namespace M {
 

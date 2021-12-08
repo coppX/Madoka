@@ -9,6 +9,8 @@ int main()
 {
     M::mutex m;
     m.lock();
-    printf("m.try_lock() = %d", m.try_lock());
+    printf("m.try_lock() = %d\n", m.try_lock());
+    m.unlock();
+
     return 0;
 }
