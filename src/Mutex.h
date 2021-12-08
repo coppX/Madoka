@@ -8,6 +8,7 @@
 #include "thread_help.h"
 #include <chrono>
 #include <cassert>
+#include <algorithm>
 
 namespace M {
 
@@ -200,53 +201,124 @@ namespace M {
     public:
         typedef Mutex mutex_type;
 
-        unique_lock() noexcept;
+        unique_lock() noexcept : m_(nullptr), owns_(false) {}
 
-        explicit unique_lock(mutex_type &m);
+        explicit unique_lock(mutex_type &m)
+            : m_(std::addressof(m)), owns_(true)
+        {
+            m_->lock();
+        }
 
-        unique_lock(mutex_type &m, defer_lock_t) noexcept;
+        unique_lock(mutex_type &m, defer_lock_t) noexcept
+            : m_(std::addressof(m)), owns_(false) {}
 
-        unique_lock(mutex_type &m, try_to_lock_t);
+        unique_lock(mutex_type &m, try_to_lock_t)
+            : m_(std::addressof(m)), owns_(m.try_lock()) {}
 
-        unique_lock(mutex_type &m, adopt_lock_t);
+        unique_lock(mutex_type &m, adopt_lock_t)
+            : m_(std::addressof(m)), owns_(true) {}
 
         template<typename Clock, typename Duration>
-        unique_lock(mutex_type &m, const std::chrono::time_point<Clock, Duration> &abs_time);
+        unique_lock(mutex_type &m, const std::chrono::time_point<Clock, Duration> &abs_time)
+            : m_(std::addressof(m)), owns_(m.try_lock_until(abs_time)) {}
 
         template<typename Rep, typename Period>
-        unique_lock(mutex_type &m, const std::chrono::duration<Rep, Period> &rel_time);
+        unique_lock(mutex_type &m, const std::chrono::duration<Rep, Period> &rel_time)
+            : m_(std::addressof(m)), owns_(m.try_lock_for(rel_time)) {}
 
-        ~unique_lock();
+        ~unique_lock()
+        {
+            if (owns_)
+                m_->unlock();
+        }
 
         unique_lock(unique_lock &) = delete;
 
         unique_lock &operator=(unique_lock &) = delete;
 
-        unique_lock(unique_lock &&) noexcept;
+        unique_lock(unique_lock&& other) noexcept
+            : m_(other.m_), owns_(other.owns_)
+        {
+            other.m_ = nullptr;
+            other.owns_ = false;
+        }
 
-        unique_lock &operator=(unique_lock &&) noexcept;
+        unique_lock &operator=(unique_lock&& other) noexcept
+        {
+            if (owns_)
+                m_->unlock();
+            m_ = other.m_;
+            owns_ = other.owns_;
+            other.m_ = nullptr;
+            other.owns_ = false;
+            return *this;
+        }
 
-        void lock();
+        void lock()
+        {
+            static_assert(m_, "unique_lock::try_lock: reference null mutex");
+            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            m_->lock();
+            owns_ = true;
+        }
 
-        bool try_lock();
+        bool try_lock()
+        {
+            static_assert(m_, "unique_lock::try_lock: reference null mutex");
+            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            owns_ = m_->try_lock();
+            return owns_;
+        }
 
         template<typename Rep, typename Period>
-        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time);
+        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time)
+        {
+            static_assert(m_, "unique_lock::try_lock: reference null mutex");
+            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            owns_ = m_->try_lock_for(rel_time);
+            return owns_;
+        }
 
         template<typename Clock, typename Duration>
-        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
+        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time)
+        {
+            static_assert(m_, "unique_lock::try_lock: reference null mutex");
+            static_assert(!owns_, "unique_lock::try_lock: already locked");
+            owns_ = m_->try_lock_until(abs_time);
+            return owns_;
+        }
 
-        void unlock();
+        void unlock()
+        {
+            if (owns_)
+            {
+                m_->unlock();
+                owns_ = false;
+            }
+        }
 
-        void swap(unique_lock &u) noexcept;
+        void swap(unique_lock &other) noexcept
+        {
+            std::swap(m_, other.m_);
+            std::swap(owns_, other.owns_);
+        }
 
-        mutex_type *release() noexcept;
+        mutex_type *release() noexcept
+        {
+            mutex_type* m = m_;
+            m_ = nullptr;
+            owns_ = false;
+            return m;
+        }
 
-        bool owns_lock() const noexcept;
+        bool owns_lock() const noexcept { return owns_; }
 
-        explicit  operator bool() const noexcept;
+        explicit  operator bool() const noexcept { return owns_; }
 
-        mutex_type *mutex() const noexcept;
+        mutex_type *mutex() const noexcept { return m_; }
+    private:
+        mutex_type* m_;
+        bool owns_;
     };
 
 };
