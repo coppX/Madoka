@@ -218,6 +218,7 @@ typedef ::timespec timespec_t;
 int condition_variable_signal(cond_t* cv)
 {
 #if defined (POSIX)
+    return pthread_cond_signal(cv);
 #elif defined (WINDOWS)
     WakeConditionVariable((PCONDITION_VARIABLE)cv);
     return 0;
@@ -227,6 +228,7 @@ int condition_variable_signal(cond_t* cv)
 int condition_variable_boardcast(cond_t* cv)
 {
 #if defined (POSIX)
+    return pthread_cond_boardcast(cv);
 #elif defined (WINDOWS)
     WakeAllConditionVariable((PCONDITION_VARIABLE)cv);
     return 0;
@@ -236,6 +238,7 @@ int condition_variable_boardcast(cond_t* cv)
 int condition_variable_wait(cond_t* cv, mutex_t* m)
 {
 #if defined (POSIX)
+    return pthread_cond_wait(cv, m);
 #elif defined (WINDOWS)
     SleepConditionVariableSRW((PCONDITION_VARIABLE)cv, (PSRWLOCK)m, INFINITE, 0);
     return 0;
@@ -245,6 +248,7 @@ int condition_variable_wait(cond_t* cv, mutex_t* m)
 int condition_variable_timedwait(cond_t* cv, mutex_t* m, timespec_t* t)
 {
 #if defined (POSIX)
+    return pthread_cond_timedwait(cv, m, t);
 #elif defined (WINDOWS)
     using namespace std::chrono;
     auto duration = seconds(t->tv_sec) + nanoseconds(t->tv_nsec);
@@ -262,6 +266,7 @@ int condition_variable_timedwait(cond_t* cv, mutex_t* m, timespec_t* t)
 int condition_variable_destroy(cond_t* cv)
 {
 #if defined (POSIX)
+    return pthread_cond_destroy(cv);
 #elif defined (WINDOWS)
     return 0;
 #endif
