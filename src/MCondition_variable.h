@@ -58,9 +58,9 @@ namespace M {
 
         template<typename Clock, typename Duration, typename Predicate>
         bool
-        wait_util(unique_lock<mutex> &lock, const time_point<Clock, Duration> &abs_time, Predicate pred) {
+        wait_until(unique_lock<mutex> &lock, const time_point<Clock, Duration> &abs_time, Predicate pred) {
             while (!pred()) {
-                if (wait_util(lock, abs_time) == M::cv_status::timeout) {
+                if (wait_until(lock, abs_time) == M::cv_status::timeout) {
                     return pred();
                 }
             }
@@ -88,7 +88,7 @@ namespace M {
         template<typename Rep, typename Period, typename Predicate>
         bool wait_for(unique_lock<mutex> &lock, const duration<Rep, Period> &rel_time, Predicate pred)
         {
-            return wait_until(lock, steady_clock::now() + rel_time, std::move(pred));
+            return wait_until(lock, steady_clock::now() + rel_time, pred);
         }
 
         typedef cond_t* native_handle_type;
