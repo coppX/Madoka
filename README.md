@@ -6,4 +6,6 @@ lock_guard
 unique_lock  
 mutex  
 recursive_mutex  
-condition_variable部分功能
+condition_variable部分功能  
+try_lock  
+lock  

@@ -92,6 +92,17 @@ template<typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 #endif
 
+//*********************LOCK*************************
+void thread_yield()
+{
+#if defined (POSIX)
+    sched_yield();
+#elif defined (WINDOWS)
+    SwitchToThread();
+#endif
+}
+//**************************************************
+
 //********************MUTEX*************************
 
 #if defined (POSIX)
