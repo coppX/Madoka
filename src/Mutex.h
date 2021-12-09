@@ -11,6 +11,42 @@
 #include <algorithm>
 
 namespace M {
+    template<typename M>
+    class unique_lock;
+
+    template<typename Lockable0, typename Lockable1>
+    int try_lock(Lockable0& l0, Lockable1& l1)
+    {
+        unique_lock<Lockable1> lk(l0, try_to_lock);
+        if (lk.owns_lock())
+        {
+            if (l1.try_lock())
+            {
+                lk.release();
+                return -1;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+    }
+
+    template<typename Lockable0, typename Lockable1, typename ... LockableN>
+    int try_lock(Lockable0& lock0, Lockable1& lock1, LockableN&... lockN)
+    {
+        int res = 0;
+        unique_lock<Lockable1> lk(lock0, try_to_lock);
+        if (lk.owns_lock())
+        {
+            res = try_lock(lock1, lockN...);
+            if (res == -1)
+                lk.release();
+            else
+                ++res;
+        }
+        return res;
+    }
 
     struct defer_lock_t {
         explicit defer_lock_t() = default;
