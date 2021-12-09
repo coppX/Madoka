@@ -44,12 +44,8 @@ namespace M {
         template<typename Rep, typename Period, typename Predicate>
         bool wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
 
-#if defined (__APPLE__) || defined (__linux__)
-        typedef pthread_cond_t* native_handle_type;
-#elif defined (_WIN32)
-        typedef void *native_handle_type;
-#endif
 
+        typedef cond_t native_handle_type;
         native_handle_type native_handle();
     private:
         cond_t cv_ = COND_INITIALIZER;

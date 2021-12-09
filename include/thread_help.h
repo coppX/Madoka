@@ -6,6 +6,7 @@
 #define MTHREAD_THREAD_IMPL_H
 
 #include <ostream>
+#include <chrono>
 
 #if defined (__APPLE__) || defined (__linux__)
 #define POSIX
@@ -212,6 +213,59 @@ typedef pthread_cond_t cond_t;
 #elif defined (WINDOWS)
 typedef void* cond_t;
 #endif
+typedef ::timespec timespec_t;
+
+int condition_variable_signal(cond_t* cv)
+{
+#if defined (POSIX)
+#elif defined (WINDOWS)
+    WakeConditionVariable((PCONDITION_VARIABLE)cv);
+    return 0;
+#endif
+}
+
+int condition_variable_boardcast(cond_t* cv)
+{
+#if defined (POSIX)
+#elif defined (WINDOWS)
+    WakeAllConditionVariable((PCONDITION_VARIABLE)cv);
+    return 0;
+#endif
+}
+
+int condition_variable_wait(cond_t* cv, mutex_t* m)
+{
+#if defined (POSIX)
+#elif defined (WINDOWS)
+    SleepConditionVariableSRW((PCONDITION_VARIABLE)cv, (PSRWLOCK)m, INFINITE, 0);
+    return 0;
+#endif
+}
+
+int condition_variable_timedwait(cond_t* cv, mutex_t* m, timespec_t* t)
+{
+#if defined (POSIX)
+#elif defined (WINDOWS)
+    using namespace std::chrono;
+    auto duration = seconds(t->tv_sec) + nanoseconds(t->tv_nsec);
+    auto abstime = system_clock::time_point(duration_cast<system_clock::duration>(duration));
+    auto timeout_ms = duration_cast<milliseconds>(abstime - system_clock::now());
+
+    if (!SleepConditionVariableSRW((PCONDITION_VARIABLE)cv, (PSRWLOCK)m, timeout_ms.count() > 0 ? timeout_ms.count() : 0, 0))
+    {
+        printf("time out");
+        return ETIMEDOUT;
+    }
+#endif
+}
+
+int condition_variable_destroy(cond_t* cv)
+{
+#if defined (POSIX)
+#elif defined (WINDOWS)
+    return 0;
+#endif
+}
 
 //***************************************************
 #endif //MTHREAD_THREAD_IMPL_H
