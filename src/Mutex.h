@@ -15,6 +15,48 @@ namespace M {
     class unique_lock;
 
     template<typename Lockable0, typename Lockable1>
+    void lock(Lockable0& l0, Lockable1& l1)
+    {
+        while (true)
+        {
+            {
+                unique_lock<Lockable0> lk0(l0);
+                if (l1.try_lock())
+                {
+                    lk0.release();
+                    break;
+                }
+            }
+            thread_yield();
+
+            {
+                unique_lock<Lockable1> lk1(l1);
+                if (l0.try_lock())
+                {
+                    lk1.release();
+                    break;
+                }
+            }
+            thread_yield();
+        }
+    }
+
+    template<typename Lockable0, typename Lockable1, typename... LockableN>
+    void lock(Lockable0& l0, Lockable1& l1, LockableN&... lN)
+    {
+        while(true)
+        {
+            unique_lock<Lockable0> lk0(l0);
+            if (-1 == try_lock(l1, lN...))
+            {
+                lk0.release();
+                return;
+            }
+            thread_yield();
+        }
+    }
+
+    template<typename Lockable0, typename Lockable1>
     int try_lock(Lockable0& l0, Lockable1& l1)
     {
         unique_lock<Lockable1> lk(l0, try_to_lock);
