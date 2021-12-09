@@ -239,7 +239,7 @@ int condition_variable_signal(cond_t* cv)
 int condition_variable_boardcast(cond_t* cv)
 {
 #if defined (POSIX)
-    return pthread_cond_boardcast(cv);
+    return pthread_cond_broadcast(cv);
 #elif defined (WINDOWS)
     WakeAllConditionVariable((PCONDITION_VARIABLE)cv);
     return 0;
