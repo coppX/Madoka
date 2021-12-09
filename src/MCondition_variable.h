@@ -16,37 +16,53 @@ namespace M {
     public:
         condition_variable() = default;
 
-        ~condition_variable();
+        ~condition_variable()
+        {
+            condition_variable_destroy(&cv_);
+        }
 
         condition_variable(condition_variable &) = delete;
 
         condition_variable &operator=(condition_variable &) = delete;
 
-        void notify_all() noexcept;
+        void notify_all() noexcept
+        {
+            condition_variable_boardcast(&cv_);
+        }
 
-        void notify_one() noexcept;
+        void notify_one() noexcept
+        {
+            condition_variable_signal(&cv_);
+        }
 
-        void wait(unique_lock<mutex> &lock);
+        void wait(unique_lock<mutex> &lock)
+        {
+            condition_variable_wait(&cv_, lock.mutex()->native_handle());
+        }
 
         template<typename Predicate>
-        void wait(unique_lock<mutex> &lock, Predicate pred);
+        void wait(unique_lock<mutex> &lock, Predicate pred)
+        {
+            while (!pred())
+                wait(lock);
+        }
 
-        template<typename Clock, typename Duration>
-        cv_status wait_until(unique_lock<mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time);
+//        template<typename Clock, typename Duration>
+//        cv_status wait_until(unique_lock<mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time);
+//
+//        template<typename Clock, typename Duration, typename Predicate>
+//        bool
+//        wait_util(unique_lock<mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time, Predicate pred);
+//
+//        template<typename Rep, typename Period>
+//        cv_status wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time);
+//
+//        template<typename Rep, typename Period, typename Predicate>
+//        bool wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
 
-        template<typename Clock, typename Duration, typename Predicate>
-        bool
-        wait_util(unique_lock<mutex> &lock, const std::chrono::time_point<Clock, Duration> &abs_time, Predicate pred);
 
-        template<typename Rep, typename Period>
-        cv_status wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time);
-
-        template<typename Rep, typename Period, typename Predicate>
-        bool wait_for(unique_lock<mutex> &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
-
-
-        typedef cond_t native_handle_type;
-        native_handle_type native_handle();
+        typedef cond_t* native_handle_type;
+        native_handle_type native_handle() { return &cv_; }
     private:
         cond_t cv_ = COND_INITIALIZER;
     };

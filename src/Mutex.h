@@ -91,10 +91,10 @@ namespace M {
         }
 
 
-        typedef mutex_t native_handle_type;
+        typedef mutex_t* native_handle_type;
         native_handle_type native_handle()
         {
-            return m_;
+            return &m_;
         }
 
     private:
