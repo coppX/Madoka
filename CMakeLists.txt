@@ -24,6 +24,7 @@ set(test
    test_lock_guard
    test_unique_lock
    test_condition_varaible
+   test_try_lock
 )
 
 foreach(CHAPTER ${CHAPTERS})
