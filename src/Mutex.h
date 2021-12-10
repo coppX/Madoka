@@ -143,7 +143,7 @@ namespace M {
         void lock()
         {
             if (0 != mutex_lock(&m_)) {
-                printf("mutex lock failed");
+                printf("mutex lock failed\n");
                 std::abort();
             }
         }
@@ -156,7 +156,7 @@ namespace M {
         void unlock()
         {
             if (0 != mutex_unlock(&m_)) {
-                printf("mutex unlock failed");
+                printf("mutex unlock failed\n");
             }
         }
 
@@ -177,7 +177,7 @@ namespace M {
         {
             if (0 != recursive_mutex_init(&m_))
             {
-                printf("recursive_mutex constructor failed");
+                printf("recursive_mutex constructor failed\n");
             }
         }
 
@@ -185,7 +185,7 @@ namespace M {
         {
             if (0 != recursive_mutex_destroy(&m_))
             {
-                printf("recursive_mutex destructor failed");
+                printf("recursive_mutex destructor failed\n");
             }
         }
 
@@ -197,7 +197,7 @@ namespace M {
         {
             if (0 != recursive_mutex_lock(&m_))
             {
-                printf("recursive_mutex_lock failed");
+                printf("recursive_mutex_lock failed\n");
             }
         }
 
@@ -210,7 +210,7 @@ namespace M {
         {
             if (0 != recursive_mutex_unlock(&m_))
             {
-                printf("recursive_mutex_unlock failed");
+                printf("recursive_mutex_unlock failed\n");
             }
         }
 
@@ -331,12 +331,12 @@ namespace M {
         {
             if(!m_)
             {
-                printf("unique_lock::lock: reference null mutex");
+                printf("unique_lock::lock: reference null mutex\n");
                 return;
             }
             if(owns_)
             {
-                printf("unique_lock::lock: already locked");
+                printf("unique_lock::lock: already locked\n");
                 return;
             }
             m_->lock();
@@ -347,12 +347,12 @@ namespace M {
         {
             if(!m_)
             {
-                printf("unique_lock::try_lock: reference null mutex");
+                printf("unique_lock::try_lock: reference null mutex\n");
                 return false;
             }
             if(owns_)
             {
-                printf("unique_lock::try_lock: already locked");
+                printf("unique_lock::try_lock: already locked\n");
                 return false;
             }
             owns_ = m_->try_lock();
@@ -364,12 +364,12 @@ namespace M {
         {
             if(!m_)
             {
-                printf("unique_lock::try_lock_for: reference null mutex");
+                printf("unique_lock::try_lock_for: reference null mutex\n");
                 return false;
             }
             if(owns_)
             {
-                printf("unique_lock::try_lock_for: already locked");
+                printf("unique_lock::try_lock_for: already locked\n");
                 return false;
             }
             owns_ = m_->try_lock_for(rel_time);
@@ -381,12 +381,12 @@ namespace M {
         {
             if(!m_)
             {
-                printf("unique_lock::try_lock_until: reference null mutex");
+                printf("unique_lock::try_lock_until: reference null mutex\n");
                 return false;
             }
             if(owns_)
             {
-                printf("unique_lock::try_lock_until: already locked");
+                printf("unique_lock::try_lock_until: already locked\n");
                 return false;
             }
             owns_ = m_->try_lock_until(abs_time);
