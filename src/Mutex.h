@@ -8,6 +8,7 @@
 #include "thread_header.h"
 #include <cassert>
 #include <algorithm>
+#include "MCondition_variable.h"
 
 namespace M {
 
@@ -216,18 +217,7 @@ namespace M {
     template<typename Rep, typename Period>
     bool timed_mutex::try_lock_for(const duration<Rep, Period> &rel_time)
     {
-        unique_lock<mutex> lk(m_);
-        bool no_timeout = true;
-        while (locked_ && no_timeout)
-        {
-            no_timeout = cv_.template wait_for(lk, rel_time) == cv_status::no_timeout;
-        }
-        if (!locked_)
-        {
-            locked_ = true;
-            return true;
-        }
-        return false;
+        return try_lock_until(steady_clock::now() + rel_time);
     }
 
     template<typename Clock, typename Duration>
@@ -237,7 +227,7 @@ namespace M {
         bool no_timeout = Clock::now() < abs_time;
         while (locked_ && no_timeout)
         {
-            no_timeout = cv_.template wait_until(lk, abs_time) == cv_status::no_timeout;
+            no_timeout = cv_.template wait_until<Clock, Duration>(lk, abs_time) == cv_status::no_timeout;
         }
         if (!locked_)
         {

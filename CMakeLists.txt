@@ -28,6 +28,7 @@ set(test
    test_lock
    test_condition_variable_wait_for
    test_condition_variable_wait_until
+   test_timed_mutex
 )
 
 foreach(CHAPTER ${CHAPTERS})
