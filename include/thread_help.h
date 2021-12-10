@@ -268,7 +268,7 @@ int condition_variable_timedwait(cond_t* cv, mutex_t* m, timespec_t* t)
 
     if (!SleepConditionVariableSRW((PCONDITION_VARIABLE)cv, (PSRWLOCK)m, timeout_ms.count() > 0 ? timeout_ms.count() : 0, 0))
     {
-        printf("time out");
+        printf("time out\n");
         return ETIMEDOUT;
     }
 #endif

@@ -107,7 +107,7 @@ namespace M {
                 tp.release();
             } else {
                 t_._Id = 0;
-                printf("thread constructor failed");
+                printf("thread constructor failed\n");
                 std::abort();
             }
         }
@@ -171,7 +171,7 @@ namespace M {
                 ec = _Thrd_join(t_, nullptr);
 #endif
                 if (0 != ec) {
-                    printf("thread join failed");
+                    printf("thread join failed\n");
                     std::abort();
                 }
                 t_ = {};
@@ -187,7 +187,7 @@ namespace M {
                 ec = _Thrd_detach(t_);
 #endif
                 if (0 != ec) {
-                    printf("thread detach failed");
+                    printf("thread detach failed\n");
                     std::abort();
                 }
                 t_ = {};

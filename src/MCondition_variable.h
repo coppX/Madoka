@@ -77,8 +77,8 @@ namespace M {
             ns_rep now_count_ns = now.time_since_epoch().count();
             ns_rep d_ns_count = rel_time.count();
 
-            if (now_count_ns > std::numeric_limits<ns_rep>::max() - d_ns_count) {
-                _do_timed_wait(lock, clock_tp_ns::max());
+            if (now_count_ns > (std::numeric_limits<ns_rep>::max)() - d_ns_count) {
+                _do_timed_wait(lock, (clock_tp_ns::max)());
             } else {
                 _do_timed_wait(lock, clock_tp_ns(nanoseconds(now_count_ns + d_ns_count)));
             }
@@ -88,7 +88,7 @@ namespace M {
         template<typename Rep, typename Period, typename Predicate>
         bool wait_for(unique_lock<mutex> &lock, const duration<Rep, Period> &rel_time, Predicate pred)
         {
-            return wait_until(lock, steady_clock::now() + rel_time, pred);
+            return wait_until(lock, steady_clock::now() + rel_time, std::move(pred));
         }
 
         typedef cond_t* native_handle_type;
@@ -99,7 +99,8 @@ namespace M {
         {
             if (!lk.owns_lock())
             {
-                printf("condition_variable time_wait: mutex not locked");
+                printf("condition_variable time_wait: mutex not locked\n");
+                return;
             }
             nanoseconds d = tp.time_since_epoch();
             timespec_t ts;
@@ -109,7 +110,7 @@ namespace M {
             int ec = condition_variable_timedwait(&cv_, lk.mutex()->native_handle(), &ts);
             if (ec && ec != ETIMEDOUT)
             {
-                printf("condition_variable timed_wait failed");
+                printf("condition_variable timed_wait failed\n");
             }
         }
 
