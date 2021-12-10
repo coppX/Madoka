@@ -23,7 +23,7 @@ set(test
    test_recursive_mutex
    test_lock_guard
    test_unique_lock
-   test_condition_varaible
+   test_condition_variable
    test_try_lock
    test_lock
    test_condition_variable_wait_for
