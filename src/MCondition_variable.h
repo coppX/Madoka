@@ -113,6 +113,12 @@ namespace M {
             }
         }
 
+        template<typename Clock>
+        void _do_timed_wait(unique_lock<mutex>& lock, time_point<Clock, nanoseconds> tp) noexcept
+        {
+            wait_for(lock, tp - Clock::now());
+        }
+
         cond_t cv_ = COND_INITIALIZER;
     };
 
