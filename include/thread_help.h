@@ -91,6 +91,53 @@ using remove_cv_t = typename remove_cv<T>::type;
 template<typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 #endif
+//********************thread************************
+#if defined (POSIX)
+typedef int thread_native_handle_type;
+#elif defined (_WIN32)
+typedef void* thread_native_handle_type;
+#endif
+
+int thread_join(thread_t *t)
+{
+#if defined (POSIX)
+    return pthread_join(t->_Id, 0);
+#elif defined (WINDOWS)
+    return _Thrd_join(*t_, nullptr);
+#endif
+}
+
+int thread_detach(thread_t *t)
+{
+#if defined (POSIX)
+    return pthread_detach(t->_Id);
+#elif defined (WINDOWS)
+    return _Thrd_detach(*t);
+#endif
+}
+
+unsigned int hw_concurrency()
+{
+// Mac
+#if defined (CTL_HW) && defined (HW_NCPU)
+    unsigned n;
+    int mib[2] = { CTL_HW, HW_NCPU };
+    std::size_t s = sizeof(n);
+    sysctl(mib, 2, &n, &s, 0, 0);
+    return n;
+    // linux
+#elif defined (_SC_NPROCESSORS_ONLN)
+    long result = sysconf(_SC_NPROCESSORS_ONLN);
+    if (result < 0) return 0;
+    return static_cast<unsigned>(result);
+    // windows
+#elif defined (_WIN32)
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+    return info.dwNumberOfProcessors;
+#endif
+}
+//**************************************************
 
 //*********************LOCK*************************
 void thread_yield()

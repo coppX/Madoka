@@ -24,6 +24,37 @@ namespace M
         no_timeout, timeout
     };
 
+    class thread
+    {
+    public:
+        typedef thread_native_handle_type native_handle_type;
+
+        thread() noexcept;
+
+        template <typename F, typename ...Args, typename>
+        explicit thread(F&& f, Args&&... args);
+
+        ~thread();
+
+        thread(const thread&) = delete;
+        thread& operator=(const thread&) = delete;
+
+        thread(thread&& t) noexcept;
+        thread& operator=(thread&& t) noexcept;
+
+        void swap(thread& t) noexcept;
+
+        bool joinable() const noexcept;
+        void join();
+        void detach();
+        ThreadId get_id() const noexcept;
+        native_handle_type native_handle();
+
+        static unsigned hardware_concurrency() noexcept;
+    private:
+        thread_t t_;
+    };
+
     template<typename Mutex>
     class lock_guard
     {

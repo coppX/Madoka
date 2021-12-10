@@ -5,8 +5,8 @@
 #include <memory>
 #include <cassert>
 #include <functional>
-#include "../include/Types.h"
-#include "../include/thread_help.h"
+#include "thread_header.h"
+#include "thread_help.h"
 
 namespace M {
 
@@ -52,7 +52,7 @@ namespace M {
     template<typename Tuple>
     inline
 #if defined (__APPLE__) || defined (__linux__)
-    void*
+    void *
 #elif defined (_WIN32)
     unsigned int
 #endif
@@ -61,9 +61,9 @@ namespace M {
         typedef typename make_tuple_indices<std::tuple_size_v<Tuple>, 1>::type IndexType;
         // IndexType will be tuple_indices<1, 2, 3, 4 ... tuple_size_v<Tuple> - 1>
         thread_execute(*tp, IndexType());
-#if defined (__APPLE__) || defined (__linux__)
+#if defined (POSIX)
         return nullptr;
-#elif defined (_WIN32)
+#elif defined (WINDOWS)
         return 0;
 #endif
     }
@@ -74,133 +74,88 @@ namespace M {
         std::invoke(std::move(std::get<0>(tp)), std::move(std::get<Indices>(tp))...);
     }
 
-    class thread {
-    public:
-        //delete copy constructor/operator
-        thread(const thread &) = delete;
+    thread::thread() noexcept: t_{} {}
 
-        thread &operator=(const thread &) = delete;
+    template<typename F, typename... Args,
+            typename = std::enable_if_t<!std::is_same_v<remove_cvref_t<F>, thread>>>
+    thread::thread(F &&f, Args &&... args) {
+        typedef std::tuple<std::decay_t<F>, std::decay_t<Args>...> Tp;
+        std::unique_ptr<Tp> tp(new Tp(std::forward<F>(f), std::forward<Args>(args)...));
 
-        //typedef
-#if defined (__APPLE__) || defined (__linux__)
-        typedef int native_handle_type;
-#elif defined (_WIN32)
-        typedef void *native_handle_type;
+        t_ = {};
+#if defined (POSIX)
+        t_._Hnd = pthread_create(&t_._Id, nullptr, &Invoke<Tp>, tp.get());
+#elif defined (WINDOWS)
+        t_._Hnd = reinterpret_cast<void *>(_beginthreadex(nullptr, 0, &Invoke<Tp>, tp.get(), 0, &t_._Id));
 #endif
+        if (t_._Id) {
+            tp.release();
+        } else {
+            t_._Id = 0;
+            printf("thread constructor failed\n");
+            std::abort();
+        }
+    }
 
-        //constructor
-        thread() : t_{} {}
+    thread::~thread() {
+        assert(!joinable());
+    }
 
-        template<typename F, typename... Args,
-                typename = std::enable_if_t<!std::is_same_v<remove_cvref_t<F>, thread>>>
-        thread(F &&f, Args &&... args) {
-            typedef std::tuple<std::decay_t<F>, std::decay_t<Args>...> Tp;
-            std::unique_ptr<Tp> tp(new Tp(std::forward<F>(f), std::forward<Args>(args)...));
+    thread::thread(thread &&t) noexcept
+        : t_(t.t_)
+    {
+        t.t_ = {};
+    }
 
-            t_ = {};
-#if defined (__APPLE__) || defined (__linux__)
-            t_._Hnd = pthread_create(&t_._Id, nullptr, &Invoke<Tp>, tp.get());
-#elif defined (_WIN32)
-            t_._Hnd = reinterpret_cast<void *>(_beginthreadex(nullptr, 0, &Invoke<Tp>, tp.get(), 0, &t_._Id));
-#endif
-            if (t_._Id) {
-                tp.release();
-            } else {
-                t_._Id = 0;
-                printf("thread constructor failed\n");
+    thread &thread::operator=(thread &&t) noexcept
+    {
+        t_ = t.t_;
+        t.t_ = {};
+        return *this;
+    }
+
+    bool thread::joinable() const noexcept
+    {
+        return 0 != t_._Id;
+    }
+
+    ThreadId thread::get_id() const noexcept {
+        return t_._Id;
+    }
+
+    thread::native_handle_type thread::native_handle()
+    {
+        return t_._Hnd;
+    }
+
+    unsigned int thread::hardware_concurrency() noexcept {
+        return hw_concurrency();
+    }
+
+    void thread::join() {
+        if (joinable()) {
+            if (0 != thread_join(&t_)) {
+                printf("thread join failed\n");
                 std::abort();
             }
+            t_ = {};
         }
+    }
 
-        ~thread() {
-            assert(!joinable());
-        }
-
-        thread(thread &&t)
-                : t_(t.t_) {
-            t.t_ = {};
-        }
-
-        thread &operator=(thread &&t) {
-            t_ = t.t_;
-            t.t_ = {};
-            return *this;
-        }
-
-        //observers
-        bool joinable() const noexcept {
-            return 0 != t_._Id;
-        }
-
-        ThreadId get_id() const noexcept {
-            return t_._Id;
-        }
-
-        native_handle_type native_handle() {
-            return t_._Hnd;
-        }
-
-        static unsigned int hardware_concurrency() noexcept {
-            // Mac
-#if defined (CTL_HW) && defined (HW_NCPU)
-            unsigned n;
-            int mib[2] = { CTL_HW, HW_NCPU };
-            std::size_t s = sizeof(n);
-            sysctl(mib, 2, &n, &s, 0, 0);
-            return n;
-        // linux
-#elif defined (_SC_NPROCESSORS_ONLN)
-            long result = sysconf(_SC_NPROCESSORS_ONLN);
-            if (result < 0) return 0;
-            return static_cast<unsigned>(result);
-        // windows
-#elif defined (_WIN32)
-            SYSTEM_INFO info;
-            GetSystemInfo(&info);
-            return info.dwNumberOfProcessors;
-#endif
-        }
-
-        //operations
-        void join() {
-            if (joinable()) {
-                int ec = -1;
-#if defined (__APPLE__) || defined (__linux__)
-                ec = pthread_join(t_._Id, 0);
-#elif defined (_WIN32)
-                ec = _Thrd_join(t_, nullptr);
-#endif
-                if (0 != ec) {
-                    printf("thread join failed\n");
-                    std::abort();
-                }
-                t_ = {};
+    void thread::detach() {
+        if (joinable()) {
+            if (0 != thread_detach(&t_)) {
+                printf("thread detach failed\n");
+                std::abort();
             }
+            t_ = {};
         }
+    }
 
-        void detach() {
-            if (joinable()) {
-                int ec = -1;
-#if defined (__APPLE__) || defined (__linux__)
-                ec = pthread_detach(t_._Id);
-#elif defined (_WIN32)
-                ec = _Thrd_detach(t_);
-#endif
-                if (0 != ec) {
-                    printf("thread detach failed\n");
-                    std::abort();
-                }
-                t_ = {};
-            }
-        }
-
-        void swap(thread &t) noexcept {
-            std::swap(t.t_, t_);
-        }
-
-    private:
-        thread_t t_;
-    };
+    void thread::swap(thread &t) noexcept
+    {
+        std::swap(t.t_, t_);
+    }
 };
 
 #endif /* MThread_h */
