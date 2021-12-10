@@ -6,7 +6,6 @@
 #define MTHREAD_MUTEX_H
 #include "Types.h"
 #include "thread_header.h"
-#include <chrono>
 #include <cassert>
 #include <algorithm>
 
@@ -111,7 +110,10 @@ namespace M {
 
     mutex::~mutex()
     {
-        assert(0 == mutex_destroy(&m_));
+        if (0 != mutex_destroy(&m_))
+        {
+            printf("mutex destroy failed\n");
+        }
     }
 
     void mutex::lock()

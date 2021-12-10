@@ -6,9 +6,12 @@
 #define MTHREAD_THREAD_HEADER_H
 
 #include "thread_help.h"
+#include <chrono>
 
 namespace M
 {
+    using namespace std::chrono;
+
     struct defer_lock_t { explicit defer_lock_t() = default;};
     struct try_to_lock_t { explicit try_to_lock_t() = default; };
     struct adopt_lock_t { explicit adopt_lock_t() = default; };
@@ -16,6 +19,10 @@ namespace M
     constexpr defer_lock_t defer_lock {};
     constexpr try_to_lock_t try_to_lock {};
     constexpr adopt_lock_t adopt_lock {};
+
+    enum class cv_status {
+        no_timeout, timeout
+    };
 
     template<typename Mutex>
     class lock_guard
@@ -136,11 +143,11 @@ namespace M
                 : m_(std::addressof(m)), owns_(true) {}
 
         template<typename Clock, typename Duration>
-        unique_lock(mutex_type &m, const std::chrono::time_point<Clock, Duration> &abs_time)
+        unique_lock(mutex_type &m, const time_point<Clock, Duration> &abs_time)
                 : m_(std::addressof(m)), owns_(m.try_lock_until(abs_time)) {}
 
         template<typename Rep, typename Period>
-        unique_lock(mutex_type &m, const std::chrono::duration<Rep, Period> &rel_time)
+        unique_lock(mutex_type &m, const duration<Rep, Period> &rel_time)
                 : m_(std::addressof(m)), owns_(m.try_lock_for(rel_time)) {}
 
         ~unique_lock();
@@ -155,10 +162,10 @@ namespace M
         bool try_lock();
 
         template<typename Rep, typename Period>
-        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time);
+        bool try_lock_for(const duration<Rep, Period> &rel_time);
 
         template<typename Clock, typename Duration>
-        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
+        bool try_lock_until(const time_point<Clock, Duration> &abs_time);
 
         void unlock();
 
@@ -175,6 +182,105 @@ namespace M
         bool owns_;
     };
 
+
+
+    class condition_variable {
+    public:
+        condition_variable() = default;
+
+        ~condition_variable();
+
+        condition_variable(condition_variable &) = delete;
+        condition_variable &operator=(condition_variable &) = delete;
+
+        void notify_all() noexcept;
+        void notify_one() noexcept;
+
+        void wait(unique_lock<mutex> &lock);
+
+        template<typename Predicate>
+        void wait(unique_lock<mutex> &lock, Predicate pred);
+
+        template<typename Clock, typename Duration>
+        cv_status
+        wait_until(unique_lock<mutex> &lock, const time_point<Clock, Duration> &abs_time);
+
+        template<typename Clock, typename Duration, typename Predicate>
+        bool
+        wait_until(unique_lock<mutex> &lock, const time_point<Clock, Duration> &abs_time, Predicate pred);
+
+        template<typename Rep, typename Period>
+        cv_status
+        wait_for(unique_lock<mutex> &lock, const duration<Rep, Period> &rel_time);
+
+        template<typename Rep, typename Period, typename Predicate>
+        bool
+        wait_for(unique_lock<mutex> &lock, const duration<Rep, Period> &rel_time, Predicate pred);
+
+        typedef cond_t* native_handle_type;
+        native_handle_type native_handle() { return &cv_; }
+    private:
+
+        void _do_timed_wait(unique_lock<mutex>& lk, time_point<system_clock, nanoseconds> tp)
+        {
+            if (!lk.owns_lock())
+            {
+                printf("condition_variable time_wait: mutex not locked\n");
+                return;
+            }
+            nanoseconds d = tp.time_since_epoch();
+            timespec_t ts;
+            seconds s = duration_cast<seconds>(d);
+            ts.tv_sec = static_cast<decltype(ts.tv_sec)>(s.count());
+            ts.tv_nsec = static_cast<decltype(ts.tv_nsec)>((d - s).count());
+            int ec = condition_variable_timedwait(&cv_, lk.mutex()->native_handle(), &ts);
+            if (ec && ec != ETIMEDOUT)
+            {
+                printf("condition_variable timed_wait failed\n");
+            }
+        }
+
+        template<typename Clock>
+        void _do_timed_wait(unique_lock<mutex>& lock, time_point<Clock, nanoseconds> tp) noexcept
+        {
+            wait_for(lock, tp - Clock::now());
+        }
+
+        cond_t cv_ = COND_INITIALIZER;
+    };
+
+    class condition_variable_any {
+    public:
+        condition_variable_any();
+
+        ~condition_variable_any();
+
+        condition_variable_any(const condition_variable_any &) = delete;
+
+        condition_variable_any &operator=(const condition_variable_any &) = delete;
+
+        void notify_all() noexcept;
+
+        void notify_one() noexcept;
+
+        template<typename Lock>
+        void wait(Lock &lock);
+
+        template<typename Lock, typename Predicate>
+        void wait(Lock &lock, Predicate pred);
+
+        template<typename Lock, typename Clock, typename Duration>
+        cv_status wait_until(Lock &lock, const std::chrono::time_point<Clock, Duration> &abs_time);
+
+        template<typename Lock, typename Clock, typename Duration, typename Predicate>
+        bool wait_until(Lock &lock, const std::chrono::time_point<Clock, Duration> &abs_time, Predicate pred);
+
+        template<typename Lock, typename Rep, typename Period>
+        cv_status wait_for(Lock &lock, const std::chrono::duration<Rep, Period> &rel_time);
+
+        template<typename Lock, typename Rep, typename Period, typename Predicate>
+        bool wait_for(Lock &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
+    };
 };
 
 #endif //MTHREAD_THREAD_HEADER_H
