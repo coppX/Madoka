@@ -9,3 +9,4 @@ recursive_mutex
 condition_variable  
 try_lock  
 lock  
+timed_mutex  
