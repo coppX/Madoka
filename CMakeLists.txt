@@ -27,6 +27,7 @@ set(test
    test_try_lock
    test_lock
    test_condition_variable_wait_for
+   test_condition_variable_wait_until
 )
 
 foreach(CHAPTER ${CHAPTERS})
