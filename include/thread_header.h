@@ -77,29 +77,6 @@ namespace M
         recursive_mutex_t m_;
     };
 
-    class timed_mutex {
-    public:
-        timed_mutex();
-
-        ~timed_mutex();
-
-        timed_mutex(const timed_mutex &) = delete;
-
-        timed_mutex &operator=(const timed_mutex &) = delete;
-
-        void lock();
-
-        bool try_lock();
-
-        template<typename Rep, typename Period>
-        bool try_lock_for(const std::chrono::duration<Rep, Period> &rel_time);
-
-        template<typename Clock, typename Duration>
-        bool try_lock_until(const std::chrono::time_point<Clock, Duration> &abs_time);
-
-        void unlock();
-    };
-
     class recursive_timed_mutex {
     public:
         recursive_timed_mutex();
@@ -280,6 +257,32 @@ namespace M
 
         template<typename Lock, typename Rep, typename Period, typename Predicate>
         bool wait_for(Lock &lock, const std::chrono::duration<Rep, Period> &rel_time, Predicate pred);
+    };
+
+    class timed_mutex {
+    public:
+        timed_mutex();
+
+        ~timed_mutex();
+
+        timed_mutex(const timed_mutex &) = delete;
+        timed_mutex &operator=(const timed_mutex &) = delete;
+
+        void lock();
+
+        bool try_lock();
+
+        template<typename Rep, typename Period>
+        bool try_lock_for(const duration<Rep, Period> &rel_time);
+
+        template<typename Clock, typename Duration>
+        bool try_lock_until(const time_point<Clock, Duration> &abs_time);
+
+        void unlock();
+    private:
+        mutex m_;
+        condition_variable cv_;
+        bool locked_;
     };
 };
 

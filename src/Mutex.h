@@ -183,6 +183,77 @@ namespace M {
         return &m_;
     }
 
+    timed_mutex::timed_mutex()
+        : locked_(false)
+    {}
+
+    timed_mutex::~timed_mutex()
+    {
+        lock_guard<mutex> lk(m_);
+    }
+
+    void timed_mutex::lock()
+    {
+        unique_lock<mutex> lk(m_);
+        while (locked_)
+        {
+            cv_.wait(lk);
+        }
+        locked_ = true;
+    }
+
+    bool timed_mutex::try_lock()
+    {
+        unique_lock<mutex> lk(m_, try_to_lock);
+        if (lk.owns_lock())
+        {
+            locked_ = true;
+            return true;
+        }
+        return false;
+    }
+
+    template<typename Rep, typename Period>
+    bool timed_mutex::try_lock_for(const duration<Rep, Period> &rel_time)
+    {
+        unique_lock<mutex> lk(m_);
+        bool no_timeout = true;
+        while (locked_ && no_timeout)
+        {
+            no_timeout = cv_.template wait_for(lk, rel_time) == cv_status::no_timeout;
+        }
+        if (!locked_)
+        {
+            locked_ = true;
+            return true;
+        }
+        return false;
+    }
+
+    template<typename Clock, typename Duration>
+    bool timed_mutex::try_lock_until(const time_point <Clock, Duration> &abs_time)
+    {
+        unique_lock<mutex> lk(m_);
+        bool no_timeout = Clock::now() < abs_time;
+        while (locked_ && no_timeout)
+        {
+            no_timeout = cv_.template wait_until(lk, abs_time) == cv_status::no_timeout;
+        }
+        if (!locked_)
+        {
+            locked_ = true;
+            return true;
+        }
+        return false;
+    }
+
+    void timed_mutex::unlock()
+    {
+        lock_guard<mutex> lk(m_);
+        locked_ = false;
+        cv_.notify_one();
+    }
+
     template<typename Mutex>
     unique_lock<Mutex>::~unique_lock()
     {
