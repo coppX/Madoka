@@ -6,7 +6,7 @@
 #include <cassert>
 #include <functional>
 #include "thread_header.h"
-#include "thread_help.h"
+#include "thread_helper.h"
 
 namespace M {
 
@@ -51,9 +51,9 @@ namespace M {
 
     template<typename Tuple>
     inline
-#if defined (__APPLE__) || defined (__linux__)
+#if defined (POSIX)
     void *
-#elif defined (_WIN32)
+#elif defined (WINDOWS)
     unsigned int
 #endif
     Invoke(void *rawVals) {

@@ -5,7 +5,7 @@
 #ifndef MTHREAD_THREAD_HEADER_H
 #define MTHREAD_THREAD_HEADER_H
 
-#include "thread_help.h"
+#include "thread_helper.h"
 #include <chrono>
 
 namespace M
