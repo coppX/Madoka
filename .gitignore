@@ -35,4 +35,7 @@
 .vs
 .vscode
 .idea
-cmake-build-debug*
+
+# Directory
+build
+cmake-build-debug

@@ -6,9 +6,9 @@ project(MThread)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-IF(NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE  Debug CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
-ENDIF(NOT CMAKE_BUILD_TYPE)
+endif(NOT CMAKE_BUILD_TYPE)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src)
@@ -36,5 +36,10 @@ foreach(CHAPTER ${CHAPTERS})
                 "${CHAPTER}/${DEMO}.h"
                 "${CHAPTER}/${DEMO}.cpp")
         add_executable(${DEMO} ${SOURCE})
+
+        if(UNIX)
+            target_link_libraries(${DEMO} PUBLIC pthread)
+        endif(UNIX)
+
     endforeach(DEMO)
 endforeach(CHAPTER)
