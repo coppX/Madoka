@@ -25,49 +25,49 @@ namespace M {
 #endif
 
     namespace this_thread {
-        class ThreadId {
+        class id {
         public:
             _Thrd_id_t id_;
 
-            ThreadId() : id_(0) {}
+            id() : id_(0) {}
 
-            ThreadId(_Thrd_id_t id) : id_(id) {}
+            id(_Thrd_id_t i) : id_(i) {}
 
 #ifdef _LIBCPP_CXX20_LANG
-            friend std::strong_ordering operator<=>(ThreadId& x, ThreadId& y)
+            friend std::strong_ordering operator<=>(id& x, id& y)
             {
                 return x.id_ <=> y.id_;
             }
 #else
 
-            friend bool operator==(ThreadId &x, ThreadId &y) {
+            friend bool operator==(id &x, id &y) {
                 return x.id_ == y.id_;
             }
 
-            friend bool operator!=(ThreadId &x, ThreadId &y) {
+            friend bool operator!=(id &x, id &y) {
                 return x.id_ != y.id_;
             }
 
-            friend bool operator<(ThreadId &x, ThreadId &y) {
+            friend bool operator<(id &x, id &y) {
                 return x.id_ < y.id_;
             }
 
-            friend bool operator<=(ThreadId &x, ThreadId &y) {
+            friend bool operator<=(id &x, id &y) {
                 return x.id_ <= y.id_;
             }
 
-            friend bool operator>(ThreadId &x, ThreadId &y) {
+            friend bool operator>(id &x, id &y) {
                 return x.id_ > y.id_;
             }
 
-            friend bool operator>=(ThreadId &x, ThreadId &y) {
+            friend bool operator>=(id &x, id &y) {
                 return x.id_ >= y.id_;
             }
 
 #endif
 
             template<typename Ch, typename Tr>
-            friend std::basic_ostream<Ch, Tr> &operator<<(std::basic_ostream<Ch, Tr> &os, ThreadId id) {
+            friend std::basic_ostream<Ch, Tr> &operator<<(std::basic_ostream<Ch, Tr> &os, id id) {
                 return os << id.id_;
             }
 
@@ -216,7 +216,7 @@ namespace M {
 //*********************************************
 
 //*******************this_thread*********************
-this_thread::ThreadId getCurrentThreadId()
+this_thread::id getCurrentThreadId()
 {
 #if defined (POSIX)
     return pthread_self();

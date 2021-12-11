@@ -116,7 +116,7 @@ namespace M {
         return 0 != t_._Id;
     }
 
-    M::this_thread::ThreadId thread::get_id() const noexcept {
+    M::this_thread::id thread::get_id() const noexcept {
         return t_._Id;
     }
 
@@ -157,7 +157,7 @@ namespace M {
 
     namespace this_thread
     {
-        ThreadId get_id() noexcept
+        id get_id() noexcept
         {
             return getCurrentThreadId();
         }

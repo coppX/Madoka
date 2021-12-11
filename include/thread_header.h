@@ -47,7 +47,7 @@ namespace M
         bool joinable() const noexcept;
         void join();
         void detach();
-        M::this_thread::ThreadId get_id() const noexcept;
+        M::this_thread::id get_id() const noexcept;
         native_handle_type native_handle();
 
         static unsigned hardware_concurrency() noexcept;
@@ -310,7 +310,7 @@ namespace M
 
     namespace this_thread
     {
-        ThreadId get_id() noexcept;
+        id get_id() noexcept;
 
         template<typename Rep, typename Period>
         void sleep_for(duration<Rep, Period>& sleep_duration);
