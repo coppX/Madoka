@@ -163,7 +163,7 @@ namespace M {
         }
 
         template<typename Rep, typename Period>
-        void sleep_for(duration<Rep, Period>& sleep_duration)
+        void sleep_for(const duration<Rep, Period>& sleep_duration)
         {
             if (sleep_duration > duration<Rep, Period>::zero())
             {
