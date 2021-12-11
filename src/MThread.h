@@ -83,11 +83,7 @@ namespace M {
         std::unique_ptr<Tp> tp(new Tp(std::forward<F>(f), std::forward<Args>(args)...));
 
         t_ = {};
-#if defined (POSIX)
-        t_._Hnd = pthread_create(&t_._Id, nullptr, &Invoke<Tp>, tp.get());
-#elif defined (WINDOWS)
-        t_._Hnd = reinterpret_cast<void *>(_beginthreadex(nullptr, 0, &Invoke<Tp>, tp.get(), 0, &t_._Id));
-#endif
+        thread_create(&t_, &Invoke<Tp>, tp.get());
         if (t_._Id) {
             tp.release();
         } else {

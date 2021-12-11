@@ -98,6 +98,20 @@ typedef int thread_native_handle_type;
 typedef void* thread_native_handle_type;
 #endif
 
+
+#if defined (POSIX)
+void thread_create(thread_t* t, void* (*f)(void*), void *arg)
+{
+    t->_Hnd = pthread_create(&t->_Id, nullptr, f, arg);
+}
+#elif defined (WINDOWS)
+void thread_create(thread_t* t, unsgiend int (*f)(void*), void *arg)
+{
+    t->_Hnd = reinterpret_cast<void *>(_beginthreadex(nullptr, 0, f, arg, &t->_Id));
+}
+#endif
+
+
 int thread_join(thread_t *t)
 {
 #if defined (POSIX)
