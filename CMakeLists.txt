@@ -29,6 +29,7 @@ set(test
    test_condition_variable_wait_for
    test_condition_variable_wait_until
    test_timed_mutex
+   test_this_thread
 )
 
 foreach(CHAPTER ${CHAPTERS})
