@@ -7,6 +7,7 @@
 #include <functional>
 #include "thread_header.h"
 #include "thread_helper.h"
+#include "Mutex.h"
 
 namespace M {
 
@@ -115,7 +116,7 @@ namespace M {
         return 0 != t_._Id;
     }
 
-    ThreadId thread::get_id() const noexcept {
+    M::this_thread::ThreadId thread::get_id() const noexcept {
         return t_._Id;
     }
 
@@ -152,6 +153,51 @@ namespace M {
     {
         std::swap(t.t_, t_);
     }
+
+
+    namespace this_thread
+    {
+        ThreadId get_id() noexcept
+        {
+            return getCurrentThreadId();
+        }
+
+        template<typename Rep, typename Period>
+        void sleep_for(duration<Rep, Period>& sleep_duration)
+        {
+            if (sleep_duration > duration<Rep, Period>::zero())
+            {
+                duration<long double> Max = duration<long double>(ULLONG_MAX / 1000000000ULL);
+                nanoseconds ns;
+                if (sleep_duration < Max)
+                {
+                    ns = duration_cast<nanoseconds>(sleep_duration);
+                    if (ns < sleep_duration)
+                        ++ns;
+                }
+                else
+                {
+                    ns = nanoseconds ::max();
+                }
+                thread_sleep(ns);
+            }
+        }
+
+        template<typename Clock, typename Duration>
+        void sleep_until(const time_point<Clock, Duration>& sleep_time)
+        {
+            mutex m;
+            condition_variable cv;
+            unique_lock<mutex> lk(m);
+            while (Clock::now() < sleep_time)
+                cv.template wait_until(lk, sleep_time);
+        }
+
+        void yield() noexcept
+        {
+            thread_yield();
+        }
+    };
 };
 
 #endif /* MThread_h */

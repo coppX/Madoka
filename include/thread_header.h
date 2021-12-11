@@ -47,7 +47,7 @@ namespace M
         bool joinable() const noexcept;
         void join();
         void detach();
-        ThreadId get_id() const noexcept;
+        M::this_thread::ThreadId get_id() const noexcept;
         native_handle_type native_handle();
 
         static unsigned hardware_concurrency() noexcept;
@@ -74,7 +74,6 @@ namespace M
     class mutex {
     public:
         constexpr mutex() = default;
-
         ~mutex();
 
         mutex(const mutex &) = delete;
@@ -111,7 +110,6 @@ namespace M
     class recursive_timed_mutex {
     public:
         recursive_timed_mutex();
-
         ~recursive_timed_mutex();
 
         recursive_timed_mutex(const recursive_timed_mutex &) = delete;
@@ -190,12 +188,9 @@ namespace M
         bool owns_;
     };
 
-
-
     class condition_variable {
     public:
         condition_variable() = default;
-
         ~condition_variable();
 
         condition_variable(condition_variable &) = delete;
@@ -228,7 +223,6 @@ namespace M
         typedef cond_t* native_handle_type;
         native_handle_type native_handle() { return &cv_; }
     private:
-
         void _do_timed_wait(unique_lock<mutex>& lk, time_point<system_clock, nanoseconds> tp)
         {
             if (!lk.owns_lock())
@@ -260,11 +254,9 @@ namespace M
     class condition_variable_any {
     public:
         condition_variable_any();
-
         ~condition_variable_any();
 
         condition_variable_any(const condition_variable_any &) = delete;
-
         condition_variable_any &operator=(const condition_variable_any &) = delete;
 
         void notify_all() noexcept;
@@ -314,6 +306,19 @@ namespace M
         mutex m_;
         condition_variable cv_;
         bool locked_;
+    };
+
+    namespace this_thread
+    {
+        ThreadId get_id() noexcept;
+
+        template<typename Rep, typename Period>
+        void sleep_for(duration<Rep, Period>& sleep_duration);
+
+        template<typename Clock, typename Duration>
+        void sleep_until(const time_point<Clock, Duration>& sleep_time);
+
+        void yield() noexcept;
     };
 };
 
