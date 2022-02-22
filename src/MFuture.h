@@ -5,6 +5,7 @@
 #ifndef MTHREAD_MFUTURE_H
 #define MTHREAD_MFUTURE_H
 #include <chrono>
+#include <type_traits.h>
 namespace M
 {
     template<typename T>
@@ -76,5 +77,10 @@ namespace M
         template<typename Clock, typename Duration>
         future_status wait_until(const std::chrono::time_point<Clock, Duration>& timeout_time) const;
     };
+
+    template<typename Function, typename... Args>
+    future<typename result_of<typename decay<Function>::type(typename decay<Args>::type...)>::type>
+            async(Function&& f, Args&&... args);
+
 }
 #endif //MTHREAD_MFUTURE_H
