@@ -4,10 +4,20 @@
 
 #ifndef MTHREAD_MFUTURE_H
 #define MTHREAD_MFUTURE_H
+#include <chrono>
 namespace M
 {
     template<typename T>
     class future;
+
+    template<typename T>
+    class shared_future;
+
+    enum class future_status {
+        ready,
+        timeout,
+        deferred
+    };
 
     class exception_ptr;
     
@@ -38,6 +48,33 @@ namespace M
         void set_value_at_thread_exit(const R& r);
         void set_value_at_thread_exit(R&& r);
         void set_exception_at_thread_exit(exception_ptr p);
+    };
+
+    template<typename T>
+    class future
+    {
+    public:
+        future() noexcept;
+        ~future();
+
+        future(future&& other) noexcept;
+        future& operator=(future&& other) noexcept;
+
+        future(const future& other) = delete;
+        future& operator=(const future& other) = delete;
+
+        shared_future<T> shared();
+
+        T get();
+
+        bool valid();
+        void wait() const;
+
+        template<typename Rep, typename Period>
+        future_status wait_for(const std::chrono::duration<Rep, Period>& timeout_duration) const;
+
+        template<typename Clock, typename Duration>
+        future_status wait_until(const std::chrono::time_point<Clock, Duration>& timeout_time) const;
     };
 }
 #endif //MTHREAD_MFUTURE_H
