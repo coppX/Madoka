@@ -15,24 +15,24 @@ namespace M
     }
 
     typedef alignBytes<16, 16> delegateType;
-    class delegateBase
+    class fDelegateBase
     {
     public:
-        explicit delegateBase()
+        explicit fDelegateBase()
             : delegateSize(0)
         {}
 
-        ~delegateBase()
+        ~fDelegateBase()
         {
             unBind();
         }
-        delegateBase(delegateBase&& other)
+        fDelegateBase(fDelegateBase&& other)
         {
             delegateAllocator.moveToEmpty(other.delegateAllocator);
             delegateSize = other.delegateSize;
             other.delegateSize = 0;
         }
-        delegateBase& operator=(delegateBase&& other)
+        fDelegateBase& operator=(fDelegateBase&& other)
         {
             unBind();
             delegateAllocator.moveToEmpty(other.delegateAllocator);
@@ -42,24 +42,24 @@ namespace M
         }
         void unBind()
         {
-            if (delegateInstance* instance = getDelegateInstanceProtected())
+            if (iDelegateInstance* instance = getDelegateInstanceProtected())
             {
-                instance->~delegateInstance();
+                instance->~iDelegateInstance();
                 delegateAllocator.resizeAllocation(0, 0, sizeof(delegateType));
                 delegateSize = 0;
             }
         }
 
-        delegateInstance* getDelegateInstanceProtected() const
+        iDelegateInstance* getDelegateInstanceProtected() const
         {
-            return delegateSize ? (delegateInstance*)delegateAllocator.getAllocation() : nullptr;
+            return delegateSize ? (iDelegateInstance*)delegateAllocator.getAllocation() : nullptr;
         }
 
         void* allocate(int32_t size)
         {
-            if (delegateInstance* instance = getDelegateInstanceProtected())
+            if (iDelegateInstance* instance = getDelegateInstanceProtected())
             {
-                instance->~delegateInstance();
+                instance->~iDelegateInstance();
             }
             int32_t newDelegateSize = DivideAndRoundUp(size, (int32_t)sizeof(delegateType));
             if (newDelegateSize != delegateSize)
@@ -73,8 +73,66 @@ namespace M
         int delegateSize;
         heapAllocator::forElementType<delegateType> delegateAllocator;
     };
+
+    struct defaultDelegateUserPolicy
+    {
+        using fDelegateInstanceExtras    = iDelegateInstance;
+        using fDelegateExtras            = fDelegateBase;
+    };
+
+    template<typename userPolicy>
+    class tDelegateBase : public userPolicy::fDelegateExtras
+    {
+        using super = typename userPolicy::fDelegateExtras;
+    public:
+        string tryGetBoundFunctionName() const
+        {
+            if (iDelegateInstance* ptr = super::getDelegateInstanceProtected())
+            {
+                return ptr->tryGetBoundFunctionName();
+            }
+            return "";
+        }
+
+        void* getObject() const
+        {
+            if (iDelegateInstance* ptr = super::getDelegateInstanceProtected())
+            {
+                return ptr->getObject();
+            }
+            return nullptr;
+        }
+
+        bool isBound() const
+        {
+            iDelegateInstance* ptr = super::getDelegateInstanceProtected();
+            return ptr && ptr->isSafeToExecute();
+        }
+
+        bool isBoundToObject(const void* inObject) const
+        {
+            if (!inObject)
+            {
+                return false;
+            }
+
+            iDelegateInstance* ptr = super::getDelegateInstanceProtected();
+            return ptr && ptr->hasSameObject(inObject);
+        }
+
+        fDelegateHandle getHandle() const
+        {
+            fDelegateHandle result;
+            if (iDelegateInstance* ptr = super::getDelegateInstanceProtected())
+            {
+                result = ptr->getHandle();
+            }
+            return result;
+        }
+    };
 }
-inline void* operator new(size_t size, M::delegateBase& base)
+
+inline void* operator new(size_t size, M::fDelegateBase& base)
 {
     return base.allocate(size);
 }

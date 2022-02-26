@@ -12,6 +12,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/src/allocator)
+include_directories(${CMAKE_SOURCE_DIR}/src/delegate)
 
 set(CHAPTERS
     test

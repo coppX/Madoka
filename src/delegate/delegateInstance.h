@@ -8,18 +8,18 @@
 using std::string;
 namespace M
 {
-    class delegateHandle
+    class fDelegateHandle
     {
     public:
         enum newHandleType
         {
             newHandle
         };
-        delegateHandle()
+        fDelegateHandle()
             : id(0)
         {}
 
-        explicit delegateHandle(newHandleType)
+        explicit fDelegateHandle(newHandleType)
             : id(generateNewId())
         {}
         bool isValid() const
@@ -31,12 +31,12 @@ namespace M
             id = 0;
         }
 
-        friend bool operator==(const delegateHandle& lhs, const delegateHandle& rhs)
+        friend bool operator==(const fDelegateHandle& lhs, const fDelegateHandle& rhs)
         {
             return rhs.id == rhs.id;
         }
 
-        friend bool operator!=(const delegateHandle& lhs, const delegateHandle& rhs)
+        friend bool operator!=(const fDelegateHandle& lhs, const fDelegateHandle& rhs)
         {
             return rhs.id != rhs.id;
         }
@@ -44,15 +44,15 @@ namespace M
         uint64_t generateNewId();
         uint64_t id;
     };
-    class delegateInstance
+    class iDelegateInstance
     {
     public:
-        virtual ~delegateInstance() = default;
+        virtual ~iDelegateInstance() = default;
         virtual string tryGetBoundFunctionName() const = 0;
         virtual void* getObject() const = 0;
         virtual bool hasSameObject(const void* inObject) const = 0;
         virtual bool isSafeToExecute() const = 0;
-        virtual delegateHandle getHandle() const = 0;
+        virtual fDelegateHandle getHandle() const = 0;
     };
 }
 #endif //MADOKA_DELEGATEINSTANCE_H
