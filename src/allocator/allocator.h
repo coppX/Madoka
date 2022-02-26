@@ -32,36 +32,36 @@ namespace M
     template<> struct bitsToSizeType<32> { using type = int32_t; };
     template<> struct bitsToSizeType<64> { using type = int64_t; };
 
+    /** The indirect allocation policy always allocates the elements indirectly. */
     template<int IndexType>
     class sizedHeapAllocator
     {
     public:
         using sizeType = typename bitsToSizeType<IndexType>::type;
-        enum { needElementType = false  };
-        enum { requireRangeCheck = true };
 
         class forAnyElementType
         {
             template<int>
-            friend class heapAllocator;
+            friend
+            class heapAllocator;
 
         public:
             forAnyElementType()
-                : data(nullptr)
-            {}
+                    : data(nullptr) {}
 
             ~forAnyElementType()
             {
                 if (data) std::free(data);
             }
 
-            forAnyElementType(const forAnyElementType&) = delete;
-            forAnyElementType& operator=(const forAnyElementType&) = delete;
+            forAnyElementType(const forAnyElementType &) = delete;
+
+            forAnyElementType &operator=(const forAnyElementType &) = delete;
 
             template<typename OtherAllocator>
-            void moveToEmpty(typename OtherAllocator::forAnyElementType& other)
+            void moveToEmpty(typename OtherAllocator::forAnyElementType &other)
             {
-                assert((void*)this != (void*)&other);
+                assert((void*) this != (void*) &other);
                 if (data)
                 {
                     std::free(data);
@@ -70,7 +70,7 @@ namespace M
                 other.data = nullptr;
             }
 
-            void moveToEmpty(forAnyElementType& other)
+            void moveToEmpty(forAnyElementType &other)
             {
                 this->template moveToEmpty<sizedHeapAllocator>(other);
             }
@@ -88,7 +88,7 @@ namespace M
             {
                 if (data || numElements)
                 {
-                    data = (memHandle*)std::realloc(data, numElements * numBytesPerElement);
+                    data = (memHandle*) std::realloc(data, numElements * numBytesPerElement);
                 }
             }
 
@@ -100,7 +100,20 @@ namespace M
         private:
             memHandle* data;
         };
-    };
-}
 
+        template<typename elementType>
+        class forElementType : public forAnyElementType
+        {
+        public:
+            forElementType() {}
+
+            elementType* getAllocation() const
+            {
+                return (elementType*) forAnyElementType::getAllocation();
+            }
+        };
+    };
+
+    using heapAllocator = sizedHeapAllocator<32>;
+}
 #endif //MADOKA_ALLOCATOR_H
