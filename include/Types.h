@@ -33,5 +33,15 @@
 #include <compare>
 #endif
 
+#if defined (__clang__) || defined (__gcc__)
+    #define GCC_PACK(n) __attribute__((packed,aligned(n)))
+    #define GCC_ALIGN(n) __attribute__((aligned(n)))
+    #define MS_ALIGN(n)
+#else
+    #define GCC_PACK(n)
+    #define GCC_ALIGN(n)
+    #define MS_ALIGN(n) __declspec(align(n))
+#endif
+
 
 #endif /* Types_h */
