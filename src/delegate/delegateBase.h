@@ -14,7 +14,7 @@ namespace M
         return (divided + divisor - 1) / divisor;
     }
 
-    typedef alignBytes<16, 16> delegateType;
+    typedef tAlignBytes<16, 16> delegateType;
     class fDelegateBase
     {
     public:

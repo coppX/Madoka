@@ -9,13 +9,23 @@
 namespace M
 {
     template<int32_t size, int32_t align>
-    struct alignBytes
+    struct tAlignBytes
     {
         struct MS_ALIGN(align) Padding
         {
             int8_t pad[size];
         } GCC_ALIGN(align);
         Padding padding;
+    };
+
+    template<typename elementType>
+    struct tTypeCompatibleBytes
+            : public tAlignBytes<
+                    sizeof(elementType),
+                    alignof(elementType)>
+    {
+        elementType* getTypePtr()  { return (elementType*)this; }
+        elementType* getTypePtr() const { return (const elementType*) this; }
     };
 
     struct memHandle
