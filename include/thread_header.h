@@ -2,8 +2,8 @@
 // Created by FDC on 2021/12/10.
 //
 
-#ifndef MTHREAD_THREAD_HEADER_H
-#define MTHREAD_THREAD_HEADER_H
+#ifndef MADOKA_THREAD_HEADER_H
+#define MADOKA_THREAD_HEADER_H
 
 #include "thread_helper.h"
 #include <chrono>
@@ -322,4 +322,4 @@ namespace M
     };
 };
 
-#endif //MTHREAD_THREAD_HEADER_H
+#endif //MADOKA_THREAD_HEADER_H

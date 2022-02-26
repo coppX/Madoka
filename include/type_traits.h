@@ -2,8 +2,8 @@
 // Created by 最上川 on 2022/2/22.
 //
 
-#ifndef MTHREAD_TYPE_TRAITS_H
-#define MTHREAD_TYPE_TRAITS_H
+#ifndef MADOKA_TYPE_TRAITS_H
+#define MADOKA_TYPE_TRAITS_H
 
 namespace M
 {
@@ -21,4 +21,4 @@ namespace M
         typedef typename remove_reference<T>::type Up;
     };
 }
-#endif //MTHREAD_TYPE_TRAITS_H
+#endif //MADOKA_TYPE_TRAITS_H

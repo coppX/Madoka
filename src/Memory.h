@@ -2,8 +2,8 @@
 // Created by FDC on 2022/1/25.
 //
 
-#ifndef MTHREAD_MEMORY_H
-#define MTHREAD_MEMORY_H
+#ifndef MADOKA_MEMORY_H
+#define MADOKA_MEMORY_H
 #include <atomic>
 #include <type_traits>
 
@@ -167,4 +167,4 @@ namespace M
         element_type*       mPtr;
     };
 }
-#endif //MTHREAD_MEMORY_H
+#endif //MADOKA_MEMORY_H

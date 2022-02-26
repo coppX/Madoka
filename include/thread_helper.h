@@ -2,8 +2,8 @@
 // Created by FDC on 2021/12/8.
 //
 
-#ifndef MTHREAD_THREAD_IMPL_H
-#define MTHREAD_THREAD_IMPL_H
+#ifndef MADOKA_THREAD_IMPL_H
+#define MADOKA_THREAD_IMPL_H
 
 #include <ostream>
 #include <chrono>
@@ -371,4 +371,4 @@ void thread_sleep(std::chrono::nanoseconds ns)
 };
 
 //***************************************************
-#endif //MTHREAD_THREAD_IMPL_H
+#endif //MADOKA_THREAD_IMPL_H

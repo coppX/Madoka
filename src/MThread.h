@@ -1,5 +1,5 @@
-#ifndef __MTHREAD__
-#define __MTHREAD__
+#ifndef __MADOKA__
+#define __MADOKA__
 
 #include <tuple>
 #include <memory>

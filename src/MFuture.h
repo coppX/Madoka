@@ -2,8 +2,8 @@
 // Created by 最上川 on 2021/12/11.
 //
 
-#ifndef MTHREAD_MFUTURE_H
-#define MTHREAD_MFUTURE_H
+#ifndef MADOKA_MFUTURE_H
+#define MADOKA_MFUTURE_H
 #include <chrono>
 #include <type_traits.h>
 namespace M
@@ -83,4 +83,4 @@ namespace M
             async(Function&& f, Args&&... args);
 
 }
-#endif //MTHREAD_MFUTURE_H
+#endif //MADOKA_MFUTURE_H

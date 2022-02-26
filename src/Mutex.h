@@ -2,8 +2,8 @@
 // Created by FDC on 2021/12/7.
 //
 
-#ifndef MTHREAD_MUTEX_H
-#define MTHREAD_MUTEX_H
+#ifndef MADOKA_MUTEX_H
+#define MADOKA_MUTEX_H
 #include "Types.h"
 #include "thread_header.h"
 #include <cassert>
@@ -369,4 +369,4 @@ namespace M {
     }
 
 };
-#endif //MTHREAD_MUTEX_H
+#endif //MADOKA_MUTEX_H

@@ -2,8 +2,8 @@
 // Created by FDC on 2021/12/7.
 //
 
-#ifndef MTHREAD_MCONDITION_VARIABLE_H
-#define MTHREAD_MCONDITION_VARIABLE_H
+#ifndef MADOKA_MCONDITION_VARIABLE_H
+#define MADOKA_MCONDITION_VARIABLE_H
 #include "Types.h"
 #include "thread_header.h"
 
@@ -86,4 +86,4 @@ namespace M {
     }
 
 };
-#endif //MTHREAD_MCONDITION_VARIABLE_H
+#endif //MADOKA_MCONDITION_VARIABLE_H

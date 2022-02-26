@@ -2,8 +2,8 @@
 // Created by 最上川 on 2021/12/11.
 //
 
-#ifndef MTHREAD_MSHARED_MUTEX_H
-#define MTHREAD_MSHARED_MUTEX_H
+#ifndef MADOKA_MSHARED_MUTEX_H
+#define MADOKA_MSHARED_MUTEX_H
 #include "thread_header.h"
 
 namespace M
@@ -96,4 +96,4 @@ namespace M
         mutex_type* mutex() const noexcept;
     };
 }
-#endif //MTHREAD_MSHARED_MUTEX_H
+#endif //MADOKA_MSHARED_MUTEX_H
