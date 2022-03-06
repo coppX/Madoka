@@ -14,7 +14,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/src/allocator)
 include_directories(${CMAKE_SOURCE_DIR}/src/delegate)
-
+include_directories(${CMAKE_SOURCE_DIR}/src/functor)
 set(CHAPTERS
     test
 )
@@ -32,6 +32,7 @@ set(test
    test_condition_variable_wait_until
    test_timed_mutex
    test_this_thread
+   test_functor
 )
 
 foreach(CHAPTER ${CHAPTERS})
